@@ -1,0 +1,42 @@
+{
+  "entries": [
+    {
+      "period": "2024–25",
+      "title": "Exchange, Industrial Mechatronics",
+      "place": "FH Joanneum, Austria"
+    },
+    {
+      "period": "2021–25",
+      "title": "B.S. Computer Science & Technology",
+      "place": "Tec de Monterrey · GPA 94.58/100"
+    },
+    {
+      "period": "2024",
+      "title": "President & cofounder, CYBERNATION",
+      "place": "Student group, Tec Puebla"
+    }
+  ],
+  "skills": [
+    "Python",
+    "C++",
+    "Java",
+    "JavaScript",
+    "TypeScript",
+    "React",
+    "Next.js",
+    "Node.js",
+    "MySQL",
+    "PostgreSQL",
+    "Supabase",
+    "TensorFlow",
+    "Keras",
+    "OpenGL",
+    "Git"
+  ],
+  "languages": [
+    "Spanish (native)",
+    "English (advanced)",
+    "German (intermediate)",
+    "French (basic)"
+  ]
+}

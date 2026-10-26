@@ -1,0 +1,32 @@
+---
+title: Treasury platform
+order: 1
+featured: true
+year: '2026'
+context: Client work
+status: In production
+summary: >-
+  Multi-tenant treasury and reporting system for a family-owned restaurant
+  group: shift cash-up, expenses, bank movements and an automatic monthly
+  income statement per business and consolidated.
+stack:
+  - Next.js
+  - Supabase
+  - PostgreSQL
+  - Row Level Security
+  - Vercel
+---
+My first real client project. The group runs several restaurants and a bakery across different cities, each one tracked in its own set of Excel files.
+
+## What it does
+
+- Shift-based cash-up that checks cash, card terminals and transfers against each other.
+- Expense capture by category, with fixed funds and advances that have to be accounted for later.
+- An income statement calculated automatically, per business or consolidated across a selection.
+- Roles for owners, accountant and on-site staff, with an audit log of every change.
+
+## How it's built
+
+Next.js on Vercel with Supabase. Every table is scoped by organization and protected with Postgres Row Level Security, so each user only sees the businesses they're assigned to.
+
+*Code and client data are private.*

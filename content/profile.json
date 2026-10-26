@@ -1,0 +1,19 @@
+{
+  "name": "Santiago Santos Bante",
+  "shortName": "Santiago Santos",
+  "monogram": "SB",
+  "headlineStart": "Software, built with",
+  "headlineEmphasis": "care",
+  "headlineEnd": "and intelligence.",
+  "intro": "I'm Santos, a software engineer working toward AI engineering. I design and build deep learning and computer vision projects, and the systems that put them to use.",
+  "location": "Puebla, Mexico",
+  "focus": "Deep learning · Computer vision",
+  "education": "CS, Tec de Monterrey",
+  "openToWork": true,
+  "email": "ssb11022002@gmail.com",
+  "github": "https://github.com/sansantoss",
+  "linkedin": "https://www.linkedin.com/in/santossanb",
+  "cvFile": "/files/cv-santiago-santos.pdf",
+  "closingLine": "Let's build something",
+  "closingEmphasis": "worth using."
+}
