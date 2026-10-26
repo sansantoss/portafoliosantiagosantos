@@ -37,6 +37,7 @@ An editorial portfolio: the look of an architecture studio, the function of a CV
 - **Scroll-driven reveals in pure CSS**: `animation-timeline: view()`, no JavaScript, turned off under `prefers-reduced-motion`.
 - **Light and dark themes**: follows the system, can be switched from the palette, and is remembered without a flash on load.
 - **Static and fast**: every page is pre-rendered and the fonts are self-hosted.
+- **A drone that rides along**: on wide screens a 3D drone (three.js) starts in the hero, flies down the right margin as you scroll and parks beside *Ask my CV*. It fades out instead of covering text, loads only on desktop and respects `prefers-reduced-motion`. It also guards the 404.
 - **Accessible**: semantic markup, a skip link, keyboard-first navigation and visible focus.
 
 ## Stack
@@ -110,6 +111,10 @@ src/app/keystatic/  ← editor UI
 src/components/     ← command palette, project list, theme, toast
 keystatic.config.ts ← content schema
 ```
+
+## Credits
+
+- 404 drone: *Eye Drone* from the [Sci-Fi Essentials Kit](https://quaternius.com) by Quaternius (CC0), eye recoloured to the site accent and compressed to ~220 KB.
 
 ## Roadmap
 

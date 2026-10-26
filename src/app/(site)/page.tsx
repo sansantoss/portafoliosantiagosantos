@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getCv, getPosts, getProfile, getProjects, formatDate } from '@/lib/content';
 import { ProjectList } from '@/components/project-list';
+import { ScrollDrone } from '@/components/scroll-drone';
 
 export default async function Home() {
   const [profile, cv, projects, posts] = await Promise.all([getProfile(), getCv(), getProjects(), getPosts()]);
@@ -19,6 +20,10 @@ export default async function Home() {
         <div className="hero-actions">
           <Link href="#projects" className="btn btn-solid">See projects</Link>
           {profile.cvFile && <a href={profile.cvFile} className="btn">Download CV</a>}
+        </div>
+        <div className="drone-dock hero-dock" data-dock="start" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="drone-poster" src="/models/eye-drone.webp" alt="" />
         </div>
       </section>
 
@@ -86,6 +91,10 @@ export default async function Home() {
               In development — follow the build in the journal
             </span>
           </form>
+          <div className="drone-dock ask-dock" data-dock="end" aria-hidden="true">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="drone-poster" src="/models/eye-drone.webp" alt="" />
+          </div>
         </div>
       </section>
 
@@ -130,6 +139,8 @@ export default async function Home() {
           {profile.cvFile && <a href={profile.cvFile} className="link-arrow">Download full CV (PDF) ↗</a>}
         </div>
       </section>
+
+      <ScrollDrone />
     </>
   );
 }

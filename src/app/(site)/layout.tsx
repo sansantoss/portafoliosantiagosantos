@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Script from 'next/script';
 import localFont from 'next/font/local';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
@@ -36,10 +37,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" className={`${serif.variable} ${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
       <body>
+        <Script id="theme" strategy="beforeInteractive">{themeScript}</Script>
         <a href="#main" className="skip">Skip to content</a>
         <header className="site-header">
           <div className="wrap">
