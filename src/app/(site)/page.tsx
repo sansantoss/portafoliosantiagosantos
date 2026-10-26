@@ -12,7 +12,6 @@ export default async function Home() {
   return (
     <>
       <section className="wrap hero">
-        <div className="label">Portfolio — Vol. 01 — {new Date().getFullYear()}</div>
         <h1>
           {profile.headlineStart} <em>{profile.headlineEmphasis}</em> {profile.headlineEnd}
         </h1>
