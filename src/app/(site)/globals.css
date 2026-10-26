@@ -340,3 +340,7 @@ img { max-width: 100%; display: block; }
 @media (min-width: 900px) and (max-width: 1179px) {
   .hero-dock { display: block; position: absolute; right: var(--gutter); bottom: 48px; width: 220px; height: 220px; }
 }
+
+/* drone easter egg: it can be poked */
+.drone { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.drone-hover, .drone-hover * { cursor: pointer !important; }

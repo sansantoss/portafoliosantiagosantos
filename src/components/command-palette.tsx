@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Chat, Copy, Doc, Download, External, Folder, Search, Sun, Arrow } from './icons';
 import { copyText, showToast } from './toast';
 import { toggleTheme } from './theme';
+import { droneCelebrate, droneLook } from './drone-events';
 
 type Item = { slug: string; title: string; hint?: string };
 type Props = {
@@ -38,9 +39,11 @@ export function CommandPalette({ projects, posts, email, github, linkedin, cvFil
     lastFocus.current = document.activeElement as HTMLElement;
     setQuery('');
     setOpen(true);
+    droneLook({ x: window.innerWidth / 2, y: window.innerHeight * 0.22 });
   }, []);
   const close = useCallback(() => {
     setOpen(false);
+    droneLook(null);
     lastFocus.current?.focus?.();
   }, []);
 
@@ -72,6 +75,7 @@ export function CommandPalette({ projects, posts, email, github, linkedin, cvFil
 
   const run = (fn: () => void) => {
     setOpen(false);
+    droneLook(null);
     fn();
   };
   const go = (href: string) => run(() => router.push(href));
@@ -140,7 +144,10 @@ export function CommandPalette({ projects, posts, email, github, linkedin, cvFil
             )}
 
             <Command.Group heading="Actions">
-              <Command.Item keywords={['mail', 'contact']} onSelect={() => run(() => copyText(email, 'Email copied'))}>
+              <Command.Item keywords={['mail', 'contact']} onSelect={() => run(() => {
+                copyText(email, 'Email copied');
+                droneCelebrate();
+              })}>
                 <Copy />
                 <span className="grow">Copy email</span>
                 <span className="hint">{email}</span>

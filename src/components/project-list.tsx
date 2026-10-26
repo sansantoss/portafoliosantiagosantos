@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
+import { droneLook } from './drone-events';
 
 type Row = {
   slug: string;
@@ -26,13 +27,24 @@ export function ProjectList({ rows, start }: { rows: Row[]; start: number }) {
 
   return (
     <>
-      <ul className="plist" onMouseMove={move} onMouseLeave={() => setActive(null)}>
+      <ul
+        className="plist"
+        onMouseMove={move}
+        onMouseLeave={() => {
+          setActive(null);
+          droneLook(null);
+        }}
+      >
         {rows.map((p, i) => (
           <li key={p.slug} className="reveal">
             <Link
               href={`/projects/${p.slug}`}
               className="prow"
-              onMouseEnter={() => setActive(p.cover)}
+              onMouseEnter={(e) => {
+                setActive(p.cover);
+                const r = e.currentTarget.getBoundingClientRect();
+                droneLook({ x: r.left + r.width * 0.35, y: r.top + r.height / 2 });
+              }}
               onFocus={() => setActive(null)}
             >
               <span className="prow-num">{String(start + i).padStart(2, '0')}</span>

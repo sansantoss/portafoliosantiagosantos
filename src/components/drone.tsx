@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { createClickCounter, createReactions } from './drone-events';
 
 // Eye Drone by Quaternius (CC0), eye recoloured to the site accent.
 // three.js is imported only when this component mounts, so it never weighs on other pages.
@@ -51,8 +52,11 @@ export function Drone() {
         camera.lookAt(0, 0, 0);
 
         const mixer = new THREE.AnimationMixer(model);
-        const idle = gltf.animations.find((a) => a.name === 'Idle');
-        if (idle) mixer.clipAction(idle).play();
+        const reactions = reduce ? null : createReactions(mixer, gltf.animations, THREE.LoopOnce);
+        const tap = createClickCounter(() => reactions?.play('Hit'), () => reactions?.play('BackFlip'));
+        el.addEventListener('pointerdown', tap);
+        const onCelebrate = () => reactions?.play('BackFlip');
+        window.addEventListener('drone:celebrate', onCelebrate);
 
         const resize = () => {
           const { width, height } = el.getBoundingClientRect();
@@ -101,6 +105,8 @@ export function Drone() {
         stop = () => {
           cancelAnimationFrame(raf);
           window.removeEventListener('pointermove', onMove);
+          window.removeEventListener('drone:celebrate', onCelebrate);
+          el.removeEventListener('pointerdown', tap);
           ro.disconnect();
           io.disconnect();
           renderer.dispose();

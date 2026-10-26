@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef } from 'react';
+import { createClickCounter, createReactions, type LookTarget } from './drone-events';
 
 /*
   The drone that rides along the home page (desktop only).
@@ -62,9 +63,8 @@ export function ScrollDrone() {
         scene.add(pivot);
 
         const mixer = new THREE.AnimationMixer(model);
-        const idle = gltf.animations.find((a) => a.name === 'Idle');
-        if (idle && !reduce) mixer.clipAction(idle).play();
-        else mixer.update(0.5);
+        const reactions = reduce ? null : createReactions(mixer, gltf.animations, THREE.LoopOnce);
+        if (reduce) mixer.update(0.5);
 
         let vw = 0, vh = 0;
         const resize = () => {
@@ -84,6 +84,24 @@ export function ScrollDrone() {
           mouse.y = (e.clientY / vh) * 2 - 1;
         };
         if (finePointer && !reduce) window.addEventListener('pointermove', onMove);
+
+        // Reactions: look at what the visitor is looking at, flip when they copy the email.
+        let lookAt: LookTarget = null;
+        const onLook = (e: Event) => { lookAt = (e as CustomEvent<LookTarget>).detail; };
+        const onCelebrate = () => reactions?.play('BackFlip');
+        window.addEventListener('drone:look', onLook);
+        window.addEventListener('drone:celebrate', onCelebrate);
+
+        // Easter egg: the canvas ignores clicks, so we hit-test the drone ourselves.
+        const overDrone = (x: number, y: number) =>
+          el.style.opacity !== '0' && Math.hypot(x - cur.x, y - cur.y) < cur.size * 0.42;
+        const tap = createClickCounter(() => reactions?.play('Hit'), () => reactions?.play('BackFlip'));
+        const onDown = (e: PointerEvent) => { if (overDrone(e.clientX, e.clientY)) tap(); };
+        const onHover = (e: PointerEvent) => {
+          document.documentElement.classList.toggle('drone-hover', overDrone(e.clientX, e.clientY));
+        };
+        window.addEventListener('pointerdown', onDown);
+        if (finePointer) window.addEventListener('pointermove', onHover);
 
         const startDock = document.querySelector<HTMLElement>('[data-dock="start"]');
         const endDock = document.querySelector<HTMLElement>('[data-dock="end"]');
@@ -152,9 +170,16 @@ export function ScrollDrone() {
           last = now;
           pivot.position.set(cur.x, -cur.y, 0);
           pivot.scale.setScalar(cur.size);
-          // Look toward the content (to its left), tilt with the motion, glance at the cursor.
-          const lookY = -0.55 + mouse.x * 0.35;
-          const lookX = 0.1 + mouse.y * 0.25 + THREE.MathUtils.clamp(vy * 0.004, -0.35, 0.35);
+          // Look at whatever the visitor is engaging with; otherwise toward the content, glancing at the cursor.
+          const tilt = THREE.MathUtils.clamp(vy * 0.004, -0.35, 0.35);
+          let lookY: number, lookX: number;
+          if (lookAt) {
+            lookY = THREE.MathUtils.clamp((lookAt.x - cur.x) / 500, -1.1, 1.1);
+            lookX = THREE.MathUtils.clamp((lookAt.y - cur.y) / 600, -0.6, 0.6) + tilt;
+          } else {
+            lookY = -0.55 + mouse.x * 0.35;
+            lookX = 0.1 + mouse.y * 0.25 + tilt;
+          }
           pivot.rotation.y += (lookY - pivot.rotation.y) * 0.08;
           pivot.rotation.x += (lookX - pivot.rotation.x) * 0.08;
           renderer.render(scene, camera);
@@ -166,6 +191,11 @@ export function ScrollDrone() {
           cancelAnimationFrame(raf);
           window.removeEventListener('resize', resize);
           window.removeEventListener('pointermove', onMove);
+          window.removeEventListener('pointermove', onHover);
+          window.removeEventListener('pointerdown', onDown);
+          window.removeEventListener('drone:look', onLook);
+          window.removeEventListener('drone:celebrate', onCelebrate);
+          document.documentElement.classList.remove('drone-hover');
           renderer.dispose();
           pmrem.dispose();
           renderer.domElement.remove();
