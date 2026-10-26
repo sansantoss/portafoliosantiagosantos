@@ -7,7 +7,7 @@ const useGithub = process.env.NEXT_PUBLIC_KEYSTATIC_STORAGE === 'github';
 
 export default config({
   storage: useGithub
-    ? { kind: 'github', repo: { owner: 'sansantoss', name: 'sansantos.com' } }
+    ? { kind: 'github', repo: { owner: 'sansantoss', name: 'portafoliosantiagosantos' } }
     : { kind: 'local' },
   ui: {
     brand: { name: 'sansantos.com' },
