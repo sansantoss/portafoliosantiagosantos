@@ -1,9 +1,12 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { planetFragment, PLANET_VERT } from './planet-shader';
-import { HOLE_FRAG, HOLE_VERT, SKY_FRAG, SKY_VERT } from './space-shaders';
+import { HOLE_FRAG, HOLE_VERT, MOUTH_FRAG, SKY_FRAG, SKY_VERT, UV_VERT, WARP_FRAG } from './space-shaders';
+import { Terminal } from './terminal';
+import { achieve } from '@/components/achievements';
 import { createDogfights } from './ships';
-import { worldFor } from './worlds';
+import { EARTH, worldFor } from './worlds';
+import type { World } from './planet-shader';
 
 export type PlayProject = {
   slug: string; title: string; summary: string; year: string; category: string; stack: string[];
@@ -13,8 +16,10 @@ type Labels = {
   fallback: string;
   title: string; system: string; back: string; open: string; help: string; helpTouch: string; next: string; prev: string;
   worlds: string; hole: string; holeKind: string; holeBody: string; soon: string; boot: string[]; skip: string;
-  planet: string; stack: string; enter: string;
+  planet: string; stack: string; enter: string; terminal: string; unlocked: string; launching: string;
+  term: Record<string, string>;
 };
+type Profile = { name: string; role: string; location: string; email: string; github: string; linkedin: string };
 
 type Target = { kind: 'planet'; index: number } | { kind: 'hole' } | null;
 
@@ -25,7 +30,10 @@ const hex = (h: string) => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(
   Fly with WASD / arrows (or the joystick on touch), drag to look around, click a planet to travel
   there. Getting close shows the project's card.
 */
-export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[]; labels: Labels; home: string; kinds: Record<string, string> }) {
+export function SbOs({ projects, labels, home, kinds, profile, otherLang, achievements }: {
+  projects: PlayProject[]; labels: Labels; home: string; kinds: Record<string, string>;
+  profile: Profile; otherLang: string; achievements: Record<string, string>;
+}) {
   const mount = useRef<HTMLDivElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
@@ -33,16 +41,31 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
   const [booting, setBooting] = useState(true);
   const [near, setNear] = useState<Target>(null);
   const [touch, setTouch] = useState(false);
-  const api = useRef<{ travel: (t: Target) => void; stick: (x: number, y: number) => void } | null>(null);
+  const [launching, setLaunching] = useState(false);
+  const [termOpen, setTermOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const flashRef = useRef<HTMLDivElement>(null);
+  const api = useRef<{ travel: (t: Target) => void; stick: (x: number, y: number) => void; launch: () => void; skip: () => void } | null>(null);
 
-  // Boot lines, short and skippable.
+  // Boot lines while loading; touch detection; the "Pilot" achievement and a small toast for achievements.
   useEffect(() => {
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const t = setTimeout(() => setBooting(false), reduce ? 0 : 2100);
     const touchQ = matchMedia('(pointer: coarse)');
     const raf = requestAnimationFrame(() => setTouch(touchQ.matches));
-    return () => { clearTimeout(t); cancelAnimationFrame(raf); };
-  }, []);
+    let tt: ReturnType<typeof setTimeout>;
+    const onAch = (e: Event) => {
+      const id = (e as CustomEvent<string>).detail;
+      setToast(achievements[id] ?? id);
+      clearTimeout(tt); tt = setTimeout(() => setToast(null), 3000);
+    };
+    addEventListener('achievement', onAch);
+    const first = setTimeout(() => achieve('pilot'), 1500);
+    const key = (e: KeyboardEvent) => {
+      if (e.key === '`' || e.key === 'º') { e.preventDefault(); setTermOpen((v) => !v); }
+    };
+    addEventListener('keydown', key);
+    return () => { cancelAnimationFrame(raf); clearTimeout(first); clearTimeout(tt); removeEventListener('achievement', onAch); removeEventListener('keydown', key); };
+  }, [achievements]);
+  useEffect(() => { if (ready) { const t = setTimeout(() => setBooting(false), 300); return () => clearTimeout(t); } }, [ready]);
 
   useEffect(() => {
     const el = mount.current;
@@ -127,39 +150,41 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
 
         // --- planets ---
         const frag = planetFragment();
+        const makePlanet = (world: World, seed: number, moons: number, rings: string, radius: number) => {
+          const compact = rings !== 'none' || moons > 0;
+          const half = radius / (compact ? 0.42 : 0.62);
+          const ringOn = rings === 'rings' || rings === 'both';
+          const beltOn = rings === 'belt' || rings === 'both';
+          const v3 = (h: string) => new THREE.Vector3(...hex(h));
+          const u = {
+            uRes: { value: new THREE.Vector2(1, 1) }, uTime: { value: 0 }, uSeed: { value: seed }, uSpinOffset: { value: 0 },
+            uType: { value: world.type },
+            uC0: { value: v3(world.pal[0]) }, uC1: { value: v3(world.pal[1]) }, uC2: { value: v3(world.pal[2]) }, uC3: { value: v3(world.pal[3]) }, uC4: { value: v3(world.pal[4]) },
+            uSea: { value: world.sea }, uScale: { value: world.scale }, uClouds: { value: world.clouds }, uCloud: { value: v3(world.cloud) },
+            uAtmo: { value: v3(world.atmo) }, uAtmoS: { value: world.atmoS }, uCaps: { value: world.caps ?? 0 }, uLights: { value: world.lights ?? 0 },
+            uEmit: { value: v3(world.emit ?? '#000000') }, uEmitS: { value: world.emitS ?? 0 },
+            uRing: { value: ringOn ? world.ring ?? 0.8 : 0 }, uRingCol: { value: v3(world.ringCol ?? '#cfc6b8') },
+            uRingR: { value: new THREE.Vector2(...(world.ringR ?? [1.35, 1.9])) }, uStorm: { value: world.storm ?? 0 },
+            uTilt: { value: 0.18 + ((seed * 0.6180339) % 1) * 0.35 },
+            uLight: { value: new THREE.Vector3(-0.6, 0.3, 0.7) }, uLightCol: { value: new THREE.Vector3(1.25, 1.06, 0.86) },
+            uMoons: { value: moons }, uBelt: { value: beltOn ? 1 : 0 },
+            uBeltR: { value: new THREE.Vector2(...(ringOn ? [2.15, 2.6] : [1.45, 2.1])) },
+          };
+          const mat = premult(new THREE.ShaderMaterial({ vertexShader: PLANET_VERT, fragmentShader: frag, uniforms: u }));
+          return { mesh: new THREE.Mesh(new THREE.PlaneGeometry(half * 2, half * 2), mat), u };
+        };
         const used: Record<string, number> = {};
         const planets = projects.map((p, i) => {
           const variant = (used[p.planet] = (used[p.planet] ?? -1) + 1);
           const w = worldFor(p.slug, p.planet, p.moons, p.rings, p.planet === 'auto' ? 0 : variant);
           const radius = p.featured ? 6.5 : 4.2 + (i % 3) * 0.5;
-          const compact = w.rings !== 'none' || w.moons > 0;
-          const half = radius / (compact ? 0.42 : 0.62);
-          const ringOn = w.rings === 'rings' || w.rings === 'both';
-          const beltOn = w.rings === 'belt' || w.rings === 'both';
-          const world = w.world;
-          const u = {
-            uRes: { value: new THREE.Vector2(1, 1) }, uTime: { value: 0 }, uSeed: { value: w.seed }, uSpinOffset: { value: 0 },
-            uType: { value: world.type },
-            uC0: { value: new THREE.Vector3(...hex(world.pal[0])) }, uC1: { value: new THREE.Vector3(...hex(world.pal[1])) },
-            uC2: { value: new THREE.Vector3(...hex(world.pal[2])) }, uC3: { value: new THREE.Vector3(...hex(world.pal[3])) },
-            uC4: { value: new THREE.Vector3(...hex(world.pal[4])) },
-            uSea: { value: world.sea }, uScale: { value: world.scale }, uClouds: { value: world.clouds }, uCloud: { value: new THREE.Vector3(...hex(world.cloud)) },
-            uAtmo: { value: new THREE.Vector3(...hex(world.atmo)) }, uAtmoS: { value: world.atmoS }, uCaps: { value: world.caps ?? 0 }, uLights: { value: world.lights ?? 0 },
-            uEmit: { value: new THREE.Vector3(...hex(world.emit ?? '#000000')) }, uEmitS: { value: world.emitS ?? 0 },
-            uRing: { value: ringOn ? world.ring ?? 0.8 : 0 }, uRingCol: { value: new THREE.Vector3(...hex(world.ringCol ?? '#cfc6b8')) },
-            uRingR: { value: new THREE.Vector2(...(world.ringR ?? [1.35, 1.9])) }, uStorm: { value: world.storm ?? 0 },
-            uTilt: { value: 0.18 + ((w.seed * 0.6180339) % 1) * 0.35 },
-            uLight: { value: new THREE.Vector3(-0.6, 0.3, 0.7) }, uLightCol: { value: new THREE.Vector3(1.25, 1.06, 0.86) }, uMoons: { value: w.moons }, uBelt: { value: beltOn ? 1 : 0 },
-            uBeltR: { value: new THREE.Vector2(...(ringOn ? [2.15, 2.6] : [1.45, 2.1])) },
-          };
-          const mat = premult(new THREE.ShaderMaterial({ vertexShader: PLANET_VERT, fragmentShader: frag, uniforms: u }));
-          const mesh = new THREE.Mesh(new THREE.PlaneGeometry(half * 2, half * 2), mat);
+          const { mesh, u } = makePlanet(w.world, w.seed, w.moons, w.rings, radius);
           // a loose spiral around the hole, a little above and below the disk
           const ang = (i / Math.max(1, projects.length)) * Math.PI * 2 + 0.6;
           const dist = 104 + i * 17;
           mesh.position.set(Math.cos(ang) * dist, Math.sin(i * 1.7) * 6, Math.sin(ang) * dist);
           scene.add(mesh);
-          return { mesh, u, radius, project: p, world: world.name };
+          return { mesh, u, radius, project: p, world: w.world.name };
         });
 
         // --- the drone ---
@@ -198,6 +223,8 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
         let nearRef: Target = null;
         const onKey = (e: KeyboardEvent, down: boolean) => {
           const k = e.key.toLowerCase();
+          if ((e.target as HTMLElement | null)?.tagName === 'INPUT') return;
+          if (launchT >= 0) { if (down && (k === 'escape' || k === ' ' || k === 'enter')) { e.preventDefault(); toFlight(); } return; }
           if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift'].includes(k)) {
             if (down) { keys.add(k); target = null; } else keys.delete(k);
             if (k.startsWith('arrow') || k === ' ') e.preventDefault();
@@ -249,10 +276,7 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
         canvas.addEventListener('pointerup', up);
         canvas.addEventListener('wheel', wheel, { passive: false });
 
-        api.current = {
-          travel: (t) => { target = t; },
-          stick: (x, y) => { stick.x = x; stick.y = y; if (x || y) target = null; },
-        };
+
 
         // --- labels over the planets (HTML) ---
         const labelBox = labelsRef.current;
@@ -273,6 +297,103 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
 
         const fights = createDogfights(THREE, scene, reduce);
 
+        // --- launch: leave Earth, enter the wormhole, come out beside SB-0 ---
+        const launchScene = new THREE.Scene();
+        launchScene.environment = scene.environment;
+        launchScene.add(new THREE.Mesh(sky.geometry, sky.material));
+        const launchCam = new THREE.PerspectiveCamera(50, 1, 0.1, 3000);
+        const earth = makePlanet(EARTH, EARTH.seed, 0, 'none', 40);
+        earth.u.uLightCol.value.set(1.1, 1.05, 1.0);
+        launchScene.add(earth.mesh);
+        const mouthMat = premult(new THREE.ShaderMaterial({ vertexShader: UV_VERT, fragmentShader: MOUTH_FRAG, uniforms: { uTime: { value: 0 } } }));
+        const mouth = new THREE.Mesh(new THREE.PlaneGeometry(36, 36), mouthMat);
+        mouth.position.set(0, 190, -20);
+        launchScene.add(mouth);
+        const warpMat = premult(new THREE.ShaderMaterial({ vertexShader: UV_VERT, fragmentShader: WARP_FRAG, uniforms: { uTime: { value: 0 }, uAspect: { value: 1 }, uFade: { value: 0 }, uExit: { value: 0 } } }));
+        const warp = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), warpMat);
+        warp.frustumCulled = false;
+        launchScene.add(warp);
+        launchScene.add(new THREE.AmbientLight(0x8899cc, 0.4));
+        let launchT = -1; // < 0 = not launching
+        const flash = (v: number) => { if (flashRef.current) flashRef.current.style.opacity = String(Math.max(0, Math.min(1, v))); };
+        const renderPass = composer.passes[0] as InstanceType<typeof RenderPass>;
+        let swoop = false;
+        const toFlight = () => {
+          launchT = -1;
+          scene.add(drone);
+          drone.position.copy(start); vel.set(0, 0, 0);
+          renderPass.scene = scene; renderPass.camera = camera;
+          camTarget.copy(drone.position);
+          flash(0);
+          setLaunching(false);
+          try { sessionStorage.setItem('sb-launched', '1'); } catch { /* storage blocked */ }
+        };
+        const startLaunch = () => {
+          if (reduce) return;
+          launchT = 0; target = null; keys.clear();
+          launchScene.add(drone);
+          renderPass.scene = launchScene; renderPass.camera = launchCam;
+          setLaunching(true);
+        };
+        const ease = (x: number) => x * x * (3 - 2 * x);
+        const lerpV = (a: InstanceType<typeof THREE.Vector3>, b: InstanceType<typeof THREE.Vector3>, k: number) => a.clone().lerp(b, k);
+        const updateLaunch = (dt: number) => {
+          launchT += dt;
+          const L = launchT;
+          mouthMat.uniforms.uTime.value = L;
+          earth.u.uTime.value = L * 0.3;
+          if (L < 3.4) {
+            // climb away from Earth towards the wormhole's mouth
+            const k = Math.min(1, L / 3.4);
+            drone.position.set(0, 44 + 150 * k * k, -18 * k * k);
+            drone.rotation.set(-0.9 * ease(Math.min(1, L / 1.2)), 0, 0);
+            const off = lerpV(new THREE.Vector3(18, 4, 24), new THREE.Vector3(0, -12, 16), ease(k));
+            launchCam.position.copy(drone.position).add(off);
+            launchCam.lookAt(lerpV(drone.position, mouth.position, ease(Math.max(0, (k - 0.3) / 0.7)) * 0.6));
+            mouth.scale.setScalar(ease(Math.min(1, Math.max(0, (L - 0.8) / 1.2))));
+            mouth.quaternion.copy(launchCam.quaternion);
+            earth.mesh.quaternion.copy(launchCam.quaternion);
+            const ld = new THREE.Vector3(-0.8, 0.6, 0.5).normalize().transformDirection(launchCam.matrixWorldInverse);
+            earth.u.uLight.value.copy(ld);
+            warpMat.uniforms.uFade.value = 0;
+            warp.visible = false;
+          } else if (L < 6.0) {
+            // inside the wormhole
+            const w = L - 3.4;
+            warp.visible = true; mouth.visible = false; earth.mesh.visible = false;
+            launchCam.position.set(0, 2000, 0); launchCam.lookAt(0, 2000, -100);
+            launchCam.updateMatrixWorld();
+            drone.position.set(Math.sin(w * 3) * 0.6, 2000 - 1.5 + Math.cos(w * 2.3) * 0.4, -11);
+            drone.rotation.set(0, Math.PI, Math.sin(w * 2) * 0.3);
+            const dist = 60, hh = 2 * dist * Math.tan((launchCam.fov * Math.PI) / 360);
+            warp.position.set(0, 2000, -dist); warp.quaternion.copy(launchCam.quaternion);
+            warp.scale.set(hh * launchCam.aspect * 1.05, hh * 1.05, 1);
+            warpMat.uniforms.uAspect.value = launchCam.aspect;
+            warpMat.uniforms.uTime.value = w;
+            warpMat.uniforms.uFade.value = Math.min(1, w / 0.35);
+            warpMat.uniforms.uExit.value = Math.max(0, (w - 1.5) / 1.1);
+            flash(w > 2.25 ? (w - 2.25) / 0.35 : 0);
+          } else {
+            // out the other side
+            mouth.visible = true; earth.mesh.visible = true; warp.visible = false;
+            toFlight();
+            camDist = 150; camEl = 0.1; swoop = true;
+            flash(1);
+            let f = 1;
+            const fade = () => { f -= 0.03; flash(f); if (f > 0) requestAnimationFrame(fade); };
+            requestAnimationFrame(fade);
+          }
+          mixer.update(dt);
+          launchCam.updateMatrixWorld();
+        };
+
+        api.current = {
+          travel: (tg) => { if (launchT < 0) target = tg; },
+          stick: (x, y) => { stick.x = x; stick.y = y; if (x || y) target = null; },
+          launch: () => startLaunch(),
+          skip: () => { if (launchT >= 0) toFlight(); },
+        };
+
         const resize = () => {
           const w = el.clientWidth, h = el.clientHeight;
           renderer.setSize(w, h, false);
@@ -280,6 +401,7 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
           composer.setSize(w, h);
           bloom.resolution.set(w / 2, h / 2);
           camera.aspect = w / h; camera.updateProjectionMatrix();
+          launchCam.aspect = w / h; launchCam.updateProjectionMatrix();
         };
         resize();
         addEventListener('resize', resize);
@@ -299,6 +421,17 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
             if (slow > 20 && ratio > 0.75) { ratio = Math.max(0.75, ratio - 0.25); renderer.setPixelRatio(ratio); resize(); slow = 0; }
           }
           t += reduce ? 0 : dt;
+
+          if (launchT >= 0) {
+            updateLaunch(dt);
+            (sky.material as InstanceType<typeof THREE.ShaderMaterial>).uniforms.uTime.value = t;
+            composer.render();
+            return;
+          }
+          if (swoop) {
+            camDist += (34 - camDist) * (1 - Math.exp(-dt * 1.1));
+            if (Math.abs(camDist - 34) < 0.3) swoop = false;
+          }
 
           // input → desired direction, relative to where the camera looks
           let ix = 0, iz = 0;
@@ -414,6 +547,9 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
         };
         tick();
         setReady(true);
+        let seen = false;
+        try { seen = !!sessionStorage.getItem('sb-launched'); } catch { /* storage blocked */ }
+        if (location.hash === '#launch' || !seen) startLaunch();
 
         stop = () => {
           cancelAnimationFrame(raf);
@@ -450,14 +586,43 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
   const card = near?.kind === 'planet' ? projects[near.index] : null;
 
   return (
-    <div className="sbos" data-ready={ready}>
+    <div className="sbos" data-ready={ready} data-launching={launching}>
       <div className="sbos-canvas" ref={mount} />
       <div className="sbos-labels" ref={labelsRef} aria-hidden="true" />
 
       <header className="sbos-top">
         <span className="sbos-brand"><b>{labels.title}</b> · {labels.system}</span>
-        <a className="sbos-back" href={home}>← {labels.back}</a>
+        <span className="sbos-actions">
+          <button type="button" className="sbos-btn" onClick={() => setTermOpen((v) => !v)} aria-pressed={termOpen}>&gt;_ {labels.terminal}</button>
+          <a className="sbos-back" href={home}>← {labels.back}</a>
+        </span>
       </header>
+
+      <Terminal
+        open={termOpen && !launching}
+        onClose={() => setTermOpen(false)}
+        labels={labels.term}
+        profile={profile}
+        projects={projects.map((p) => ({ title: p.title, world: worldFor(p.slug, p.planet).world.name }))}
+        actions={{
+          go: (i) => api.current?.travel({ kind: 'planet', index: i }),
+          goHole: () => api.current?.travel({ kind: 'hole' }),
+          open: (i) => { window.location.href = projects[i].href; },
+          launch: () => api.current?.launch(),
+          lang: () => { window.location.href = otherLang; },
+          exit: () => { window.location.href = home; },
+          used: () => achieve('hacker'),
+        }}
+      />
+
+      <div className="sbos-flash" ref={flashRef} aria-hidden="true" />
+      {launching && (
+        <div className="sbos-launch">
+          <p>&gt; {labels.launching}</p>
+          <button type="button" onClick={() => api.current?.skip()}>{labels.skip} ↵</button>
+        </div>
+      )}
+      {toast && <div className="sbos-toast" role="status"><span>{labels.unlocked}</span>{toast}</div>}
 
       <nav className="sbos-worlds" aria-label={labels.worlds}>
         {projects.map((p, i) => (
@@ -504,12 +669,11 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
         </>
       )}
 
-      {(booting || !ready) && !failed && (
-        <div className="sbos-boot" onClick={() => setBooting(false)}>
+      {booting && !failed && (
+        <div className="sbos-boot" data-out={ready}>
           <div>
-            {labels.boot.map((l, i) => <p key={l} style={{ animationDelay: `${i * 0.45}s` }}>&gt; {l}</p>)}
+            {labels.boot.map((l, i) => <p key={l} style={{ animationDelay: `${i * 0.35}s` }}>&gt; {l}</p>)}
           </div>
-          <button type="button" onClick={() => setBooting(false)}>{labels.skip}</button>
         </div>
       )}
       {failed && (

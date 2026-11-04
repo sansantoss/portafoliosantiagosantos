@@ -100,3 +100,40 @@ button { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .sbos-card, .sbos-boot p { animation: none; opacity: 1; }
 }
+
+/* top bar actions */
+.sbos-actions { display: flex; gap: 8px; pointer-events: auto; }
+.sbos-btn { font-family: var(--font-geist-mono), monospace; font-size: 12px; letter-spacing: 0.06em; color: var(--ink); background: var(--panel); border: 1px solid var(--line); padding: 9px 12px; min-height: 38px; cursor: pointer; backdrop-filter: blur(8px); }
+.sbos-btn:hover, .sbos-btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.sbos-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* terminal */
+.sbos-term {
+  position: absolute; left: max(18px, env(safe-area-inset-left, 0px)); top: calc(64px + env(safe-area-inset-top, 0px)); z-index: 6;
+  width: min(560px, calc(100% - 36px)); max-height: min(420px, 55vh); display: flex; flex-direction: column;
+  background: rgba(5, 7, 14, 0.86); border: 1px solid var(--line); backdrop-filter: blur(10px);
+  font-family: var(--font-geist-mono), monospace; font-size: 12.5px; line-height: 1.55; color: var(--ink-2);
+  animation: card-in-left 0.25s ease both;
+}
+@keyframes card-in-left { from { opacity: 0; transform: translateY(-6px); } }
+.term-log { flex: 1; overflow-y: auto; padding: 14px 16px 6px; white-space: pre-wrap; word-break: break-word; }
+.term-log p { margin: 0 0 4px; }
+.term-log p.in { color: var(--ink); }
+.term-log b, .term-input b { color: var(--accent); font-weight: 500; }
+.term-input { display: flex; align-items: center; gap: 8px; padding: 10px 16px 12px; border-top: 1px solid var(--line); color: var(--ink-2); }
+.term-input input { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--ink); font: inherit; caret-color: var(--accent); }
+
+/* launch */
+.sbos-flash { position: absolute; inset: 0; z-index: 8; background: #fff8ee; opacity: 0; pointer-events: none; }
+.sbos-launch { position: absolute; left: 0; right: 0; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); z-index: 9; display: flex; justify-content: space-between; align-items: center; padding-inline: max(22px, env(safe-area-inset-left, 0px)); font-family: var(--font-geist-mono), monospace; font-size: 12px; color: var(--accent); }
+.sbos-launch p { margin: 0; letter-spacing: 0.08em; }
+.sbos-launch button { background: rgba(5, 7, 14, 0.5); border: 1px solid var(--line); color: var(--ink); padding: 9px 14px; min-height: 38px; cursor: pointer; font-family: inherit; font-size: 12px; }
+.sbos[data-launching="true"] .sbos-worlds, .sbos[data-launching="true"] .sbos-card, .sbos[data-launching="true"] .sbos-help,
+.sbos[data-launching="true"] .sbos-stick, .sbos[data-launching="true"] .sbos-labels, .sbos[data-launching="true"] .sbos-actions { opacity: 0; pointer-events: none; }
+.sbos-worlds, .sbos-help, .sbos-labels, .sbos-actions { transition: opacity 0.6s ease; }
+.sbos-boot[data-out="true"] { opacity: 0; pointer-events: none; }
+
+/* achievement toast */
+.sbos-toast { position: absolute; left: 50%; top: calc(70px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 7; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 16px; background: var(--panel); border: 1px solid var(--accent); backdrop-filter: blur(8px); font-family: var(--f-serif), Georgia, serif; font-size: 18px; animation: card-in-left 0.3s ease both; }
+.sbos-toast span { font-family: var(--font-geist-mono), monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+@media (max-width: 700px) { .sbos-btn { padding: 9px 10px; } .sbos-brand { display: none; } }

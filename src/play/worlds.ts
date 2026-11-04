@@ -45,3 +45,10 @@ export function worldFor(slug: string, preset: string | null | undefined, moons 
     rings === 'none' || rings === 'rings' || rings === 'belt' || rings === 'both' ? rings : world.ring ? 'rings' : 'none';
   return { world, seed, moons: Math.max(0, Math.min(4, moons)), rings: resolved };
 }
+
+/** Home: the departure planet in the launch sequence (not a project world). */
+export const EARTH: World = {
+  id: 'earth', name: 'Tierra', kind: 'Home', kindEs: 'Casa', meaning: 'home', meaningEs: 'casa', type: 0, seed: 7,
+  pal: ['#0a2a5e', '#1f6fb2', '#3d7a3a', '#8a7a4a', '#e8e2d0'], sea: 0.55, scale: 1.5, clouds: 0.6, cloud: '#ffffff',
+  atmo: '#6fb4ff', atmoS: 1.15, caps: 0.8, lights: 1,
+};

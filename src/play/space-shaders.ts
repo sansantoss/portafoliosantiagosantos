@@ -171,3 +171,56 @@ void main(){
   gl_FragDepth=uDepth;   // sort against the drone and the ships as if it sat at the hole's centre
   gl_FragColor=vec4(col,a);
 }`;
+
+/** A camera-facing quad (uv 0..1). */
+export const UV_VERT = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+
+/**
+ * The wormhole's mouth: a sphere that shows the far side. Looking into it, the sky around is pulled
+ * into a bright rim and the centre glows with the light of SB-0's disk on the other end.
+ */
+export const MOUTH_FRAG = `
+varying vec2 vUv;
+uniform float uTime;
+${SIMPLEX}
+${SKY_FN}
+void main(){
+  vec2 p=vUv*2.0-1.0; float r=length(p);
+  if(r>1.0) discard;
+  float k=1.0-r;
+  // the far side: warm light swirling, brighter at the centre
+  float a=atan(p.y,p.x);
+  vec3 q=vec3(cos(a+uTime*0.6)*2.0,sin(a+uTime*0.6)*2.0,r*6.0-uTime*1.5);
+  float swirl=fbm4(q)*0.5+0.5;
+  vec3 far=mix(vec3(0.9,0.42,0.12),vec3(1.0,0.9,0.75),smoothstep(0.4,1.0,k))*(0.4+1.6*pow(k,2.5))*(0.6+0.6*swirl);
+  // stars dragged around the rim
+  vec3 dir=normalize(vec3(p*(1.0+3.0*pow(r,6.0)),0.6));
+  vec3 rim=skyColor(dir,uTime)*smoothstep(0.55,1.0,r)*2.5;
+  float ring=exp(-pow((r-0.97)/0.025,2.0));
+  vec3 col=mix(far,rim,smoothstep(0.6,0.95,r))+vec3(0.75,0.85,1.0)*ring*2.5;
+  float alpha=smoothstep(1.0,0.97,r);
+  gl_FragColor=vec4(col*alpha,alpha);
+}`;
+
+/** Inside the wormhole: a tunnel of light streaks rushing past, opening to a bright exit. */
+export const WARP_FRAG = `
+varying vec2 vUv;
+uniform float uTime; uniform float uAspect; uniform float uFade; uniform float uExit;
+${SIMPLEX}
+void main(){
+  vec2 p=(vUv*2.0-1.0)*vec2(uAspect,1.0);
+  float r=length(p)+1e-3; float a=atan(p.y,p.x);
+  float z=0.35/r+uTime*3.2;
+  vec3 q=vec3(cos(a)*1.5,sin(a)*1.5,z);
+  float n=fbm4(q)*0.5+0.5;
+  float streak=pow(fbm4(vec3(cos(a)*7.0,sin(a)*7.0,z*0.35))*0.5+0.5,4.0);
+  vec3 c1=vec3(0.25,0.18,0.65), c2=vec3(0.15,0.55,0.85), c3=vec3(1.0,0.75,0.5);
+  vec3 col=mix(c1,c2,n)*pow(n,1.6)*0.9+vec3(0.85,0.9,1.0)*streak*2.0;
+  col*=0.55+0.45*smoothstep(1.4,0.2,r);
+  col*=smoothstep(0.02,0.35,r);
+  // the exit grows at the end
+  float exitGlow=exp(-r*r/(0.02+uExit*1.2))*(0.5+uExit*6.0);
+  col+=c3*exitGlow;
+  col*=uFade;
+  gl_FragColor=vec4(col,uFade);
+}`;

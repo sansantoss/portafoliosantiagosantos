@@ -8,7 +8,7 @@ import { SWITCHED_FLAG } from '@/i18n/config';
   Anywhere on the client: achieve('palette').
 */
 export const ACHIEVEMENT_IDS = [
-  'hello', 'explorer', 'palette', 'polyglot', 'poke', 'backflip', 'typist', 'reader', 'contact', 'night', 'tokens', 'graph',
+  'hello', 'explorer', 'palette', 'polyglot', 'poke', 'backflip', 'typist', 'reader', 'contact', 'night', 'tokens', 'graph', 'pilot', 'hacker',
 ] as const;
 export type AchievementId = (typeof ACHIEVEMENT_IDS)[number];
 

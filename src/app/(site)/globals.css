@@ -812,3 +812,7 @@ img { max-width: 100%; display: block; }
 .sky-launch:hover { background: rgba(10, 20, 40, 0.45); border-color: #fff; }
 .sky-launch:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 @media (max-width: 700px) { .sky-launch { left: 8%; transform: none; top: calc(4% + 64px); } }
+/* take-off: the mini drone climbs out of the sky before /play opens */
+.sky-scene.taking-off .mini-drone { animation: take-off 0.9s cubic-bezier(.5,0,.9,.4) forwards !important; }
+.sky-scene.taking-off .sky-night, .sky-scene.taking-off .sky-day { transition: filter 0.9s ease; filter: brightness(0.6); }
+@keyframes take-off { from { transform: translate(50vw, 0) scale(1); } to { transform: translate(50vw, -420px) scale(0.2); opacity: 0; } }

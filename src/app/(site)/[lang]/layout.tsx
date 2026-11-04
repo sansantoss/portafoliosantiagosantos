@@ -132,7 +132,7 @@ export default async function SiteLayout({ children, params }: Props) {
           </div>
           <SkyScene
             labels={t.sky}
-            launchHref={`/${lang}/play`}
+            launchHref={`/${lang}/play#launch`}
             caption={<>{profile.quote ? <>“{profile.quote}”</> : null}<small>{t.sky.place}</small></>}
           >
             <div className="wrap foot-row">

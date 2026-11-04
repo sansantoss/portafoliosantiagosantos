@@ -193,7 +193,21 @@ export function SkyScene({ labels, caption, launchHref, children }: { labels: La
 
       {caption && <p className="sky-caption">{caption}</p>}
       {/* the drone takes off from here: the way into SB-OS */}
-      {launchHref && <a className="sky-launch" href={launchHref}>{labels.launch} ↗</a>}
+      {launchHref && (
+        <a
+          className="sky-launch"
+          href={launchHref}
+          onClick={(e) => {
+            // the little drone shoots up into the sky first, then we follow it
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches || e.metaKey || e.ctrlKey) return;
+            e.preventDefault();
+            root.current?.classList.add('taking-off');
+            setTimeout(() => { window.location.href = launchHref; }, 900);
+          }}
+        >
+          {labels.launch} ↗
+        </a>
+      )}
       <div className="sky-foot">{children}</div>
     </div>
   );
