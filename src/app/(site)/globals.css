@@ -344,3 +344,12 @@ img { max-width: 100%; display: block; }
 /* drone easter egg: it can be poked */
 .drone { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .drone-hover, .drone-hover * { cursor: pointer !important; }
+
+/* Big monitors (27" and up): give the drone room to be seen */
+@media (min-width: 1800px) {
+  :root { --max: 1480px; }
+  .hero h1 { font-size: clamp(112px, 6.2vw, 136px); max-width: 1300px; }
+  .hero p { font-size: 21px; max-width: 640px; }
+  .hero-dock { width: 340px; height: 340px; bottom: 16px; right: calc(var(--gutter) - 40px); }
+  .ask-dock { flex-basis: 260px; height: 260px; }
+}

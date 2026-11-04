@@ -131,11 +131,14 @@ export function ScrollDrone() {
           const e = docRect(endDock);
           const pad = wrap ? wrap.getBoundingClientRect().left + 24 : 0; // free margin beside content
           const canFly = pad >= MIN_GUTTER && !reduce;
-          const flySize = Math.min(pad * 0.8, 120);
-          const flyX = vw - pad / 2;
+          // Grows with big monitors and stays close to the content instead of drifting to the far edge.
+          const flySize = Math.min(pad * 0.8, Math.max(120, vw * 0.09));
+          const flyX = vw - pad + Math.min(pad / 2, flySize * 0.5 + 60);
 
           // Where the drone wants to be, in document coordinates.
-          const ride = window.scrollY + vh * 0.5;
+          // On tall screens the hero dock sits above the middle of the screen, so ride at its height
+          // (otherwise the drone would leave the hero before you even scroll).
+          const ride = window.scrollY + Math.min(vh * 0.5, s.y);
           const docY = Math.min(Math.max(ride, s.y), e.y);
           const p = clamp01((docY - s.y) / (e.y - s.y)); // 0 = hero, 1 = Ask my CV
           const outT = smooth(clamp01(p / 0.06)); // leaving the hero dock
