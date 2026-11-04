@@ -474,6 +474,8 @@ img { max-width: 100%; display: block; }
 @media (min-width: 1180px) {
   .progress { display: block; position: fixed; left: max(12px, calc((100vw - var(--max)) / 2 - 104px)); top: 50%; transform: translateY(-50%); z-index: 14; }
 }
+.progress { transition: opacity 0.3s ease; }
+.progress.away { opacity: 0; pointer-events: none; }
 .progress-line { position: absolute; left: 4px; top: 6px; bottom: 6px; width: 1px; background: var(--line); }
 .progress-line span { display: block; width: 100%; height: 100%; background: var(--ink); transform-origin: top; }
 .progress ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 22px; }
@@ -650,12 +652,15 @@ img { max-width: 100%; display: block; }
   --sc-hill: #4d6688; --sc-near: #1d2a40; --sc-window: #3a4b6a; --sc-light: #ffd27f; --sc-lights-on: 0;
   --sc-drone: #c8ccd6; --sc-eye: #1d3fbf;
   position: relative; height: clamp(320px, 34vw, 540px); overflow: hidden; isolation: isolate; color: #e7ebf3;
+
 }
+/* nothing moves while the landscape is off screen */
+.sky-scene.paused *, .sky-scene.paused *::before, .sky-scene.paused *::after { animation-play-state: paused !important; }
 .sky { position: absolute; inset: 0; transition: opacity 1s ease; }
 .sky-day { background: linear-gradient(#4b7bbd 0%, #7ea6d6 38%, #bcd3ea 66%, #e4ecf2 82%); }
 .sky-night { background: linear-gradient(#03050f 0%, #0a1129 36%, #16234a 68%, #2a3a66 84%); opacity: 0; }
 .milky {
-  position: absolute; inset: -20% -10% 30%; opacity: 0; transition: opacity 1.4s ease; filter: blur(22px); pointer-events: none;
+  position: absolute; inset: -20% -10% 30%; opacity: 0; transition: opacity 1.4s ease; pointer-events: none;
   background:
     radial-gradient(34% 13% at 22% 66%, rgba(118, 92, 196, 0.55), transparent 70%),
     radial-gradient(30% 12% at 42% 54%, rgba(64, 178, 160, 0.48), transparent 70%),
@@ -665,7 +670,7 @@ img { max-width: 100%; display: block; }
   transform: rotate(-14deg);
   animation: milky 18s ease-in-out infinite alternate;
 }
-@keyframes milky { from { transform: rotate(-14deg) translateX(-2%); filter: blur(22px) hue-rotate(0deg); } to { transform: rotate(-12deg) translateX(2%); filter: blur(26px) hue-rotate(-18deg); } }
+@keyframes milky { from { transform: rotate(-14deg) translateX(-2%); } to { transform: rotate(-12deg) translateX(2%); } }
 .city-glow { position: absolute; left: 0; right: 0; bottom: 0; height: 40%; opacity: 0; transition: opacity 1.4s ease; background: radial-gradient(60% 70% at 50% 100%, rgba(255, 180, 90, 0.22), transparent 70%); pointer-events: none; }
 .sky-stars { position: absolute; left: 0; top: 0; width: 100%; height: 62%; fill: #fff; opacity: 0; transition: opacity 1.2s ease; }
 .sky-stars .tw, .land .lights .tw { animation: twinkle 3.4s ease-in-out infinite; }
@@ -686,13 +691,17 @@ img { max-width: 100%; display: block; }
 .celestial { position: absolute; left: 14%; top: 16%; width: clamp(54px, 5.6vw, 88px); aspect-ratio: 1; padding: 0; border: 0; background: none; border-radius: 50%; cursor: pointer; z-index: 3; }
 .celestial:focus-visible { outline: 2px solid #fff; outline-offset: 10px; }
 .celestial .sun, .celestial .moon { position: absolute; inset: 0; border-radius: 50%; transition: transform 1.1s cubic-bezier(.65,0,.35,1), opacity 0.8s ease, box-shadow 0.4s ease; }
-.celestial .sun { background: radial-gradient(circle at 45% 42%, #fffbe9, #fff0c0 60%, #ffe39a); box-shadow: 0 0 40px 18px rgba(255, 232, 160, 0.55), 0 0 120px 60px rgba(255, 236, 190, 0.28); }
-.celestial .moon { background: radial-gradient(circle at 40% 38%, #fbfaff, #e6e4f4 62%, #cfcde3); box-shadow: 0 0 40px 14px rgba(214, 220, 255, 0.35), 0 0 110px 50px rgba(160, 175, 255, 0.14); transform: translateY(160%); opacity: 0; }
+.celestial .sun { background: radial-gradient(circle at 45% 42%, #fffbe9, #fff0c0 60%, #ffe39a); }
+.celestial .moon { background: radial-gradient(circle at 40% 38%, #fbfaff, #e6e4f4 62%, #cfcde3); transform: translateY(160%); opacity: 0; }
+/* halos as gradients, not big blurred shadows (those get clipped into squares by some renderers) */
+.celestial .sun::before, .celestial .moon::before { content: ''; position: absolute; inset: -160%; border-radius: 50%; pointer-events: none; z-index: -1; transition: opacity 0.4s ease, transform 0.4s ease; }
+.celestial .sun::before { background: radial-gradient(circle, rgba(255, 236, 170, 0.75) 0%, rgba(255, 232, 160, 0.38) 22%, rgba(255, 236, 190, 0.12) 45%, transparent 70%); }
+.celestial .moon::before { background: radial-gradient(circle, rgba(220, 225, 255, 0.5) 0%, rgba(190, 200, 255, 0.2) 24%, rgba(160, 175, 255, 0.07) 45%, transparent 70%); }
 .celestial .moon i { position: absolute; border-radius: 50%; background: rgba(160, 158, 190, 0.28); }
 .celestial .moon i:nth-child(1) { width: 22%; height: 22%; left: 24%; top: 30%; }
 .celestial .moon i:nth-child(2) { width: 14%; height: 14%; left: 58%; top: 56%; }
 .celestial .moon i:nth-child(3) { width: 10%; height: 10%; left: 40%; top: 66%; }
-.celestial:hover .sun { box-shadow: 0 0 52px 24px rgba(255, 232, 160, 0.7), 0 0 150px 80px rgba(255, 236, 190, 0.34); }
+.celestial:hover .sun::before, .celestial:hover .moon::before { transform: scale(1.12); }
 .celestial-hint { position: absolute; left: 14%; top: calc(16% + clamp(54px, 5.6vw, 88px) + 14px); font-family: var(--font-geist-mono), monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(20, 30, 50, 0.7); white-space: nowrap; transition: opacity 0.4s ease; }
 .celestial-hint .when-night { display: none; }
 
@@ -782,3 +791,15 @@ img { max-width: 100%; display: block; }
   .mini-drone { transform: translate(62vw, 0); }
 }
 .site-footer .sky-foot .foot-row { flex-direction: row; padding-block: 0 22px; gap: 20px 28px; }
+
+/* phones: one header row. The section links live in the menu (⌘K / Menu) */
+.kbd-short { display: none; }
+@media (max-width: 560px) {
+  .site-header .wrap { flex-wrap: nowrap; padding-block: 12px; }
+  .brand-name { display: none; }
+  .nav { flex-wrap: nowrap; gap: 8px; }
+  .nav .hide-xs { display: none; }
+  .kbd-btn { width: auto; padding-inline: 12px; }
+  .kbd-btn .kbd-long { display: none; }
+  .kbd-btn .kbd-short { display: inline; }
+}

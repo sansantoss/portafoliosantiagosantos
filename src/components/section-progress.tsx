@@ -7,10 +7,14 @@ type Item = { id: string; label: string };
 export function SectionProgress({ items, label }: { items: Item[]; label: string }) {
   const [active, setActive] = useState(items[0]?.id);
   const [p, setP] = useState(0);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     const els = items.map((i) => document.getElementById(i.id)).filter(Boolean) as HTMLElement[];
+    const footer = document.querySelector('.site-footer');
     const onScroll = () => {
+      // Step aside once the footer comes up, so it doesn't sit on top of it.
+      setHidden(!!footer && footer.getBoundingClientRect().top < innerHeight * 0.6);
       const max = document.documentElement.scrollHeight - innerHeight;
       setP(max > 0 ? Math.min(1, scrollY / max) : 0);
       const mid = innerHeight * 0.4;
@@ -24,7 +28,7 @@ export function SectionProgress({ items, label }: { items: Item[]; label: string
   }, [items]);
 
   return (
-    <nav className="progress" aria-label={label}>
+    <nav className={`progress${hidden ? ' away' : ''}`} aria-label={label}>
       <span className="progress-line" aria-hidden="true"><span style={{ transform: `scaleY(${p})` }} /></span>
       <ol>
         {items.map((i) => (

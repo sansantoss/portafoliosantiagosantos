@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useRef } from 'react';
 import { centreOf, switchTheme } from './theme';
 
 /*
@@ -50,8 +51,17 @@ const WHEEL = { x: 1385, y: 380, r: 46 };
 type Labels = { label: string; toggle: string; hintDay: string; hintNight: string; place: string };
 
 export function SkyScene({ labels, caption, children }: { labels: Labels; caption?: React.ReactNode; children?: React.ReactNode }) {
+  const root = useRef<HTMLDivElement>(null);
+  // Pause every animation while the landscape is off screen.
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => el.classList.toggle('paused', !e.isIntersecting), { rootMargin: '100px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
   return (
-    <div className="sky-scene" data-label={labels.label}>
+    <div className="sky-scene paused" ref={root} data-label={labels.label}>
       <div className="sky sky-day" aria-hidden="true" />
       <div className="sky sky-night" aria-hidden="true" />
       <div className="milky" aria-hidden="true" />

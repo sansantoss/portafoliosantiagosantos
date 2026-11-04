@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getChat, getCv, getGraph, getPosts, getProfile, getProjects, formatDate } from '@/lib/content';
@@ -20,9 +21,26 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
     getProfile(lang), getCv(lang), getProjects(lang), getPosts(lang), getGraph(lang), getChat(lang),
   ]);
   const years = projects.map((p) => Number(p.year)).filter(Boolean);
+  // Structured data so search engines know who this site is about.
+  const person = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: profile.name,
+    alternateName: profile.shortName,
+    url: `https://sansantos.com/${lang}`,
+    image: 'https://sansantos.com/images/profile/portrait.jpg',
+    jobTitle: profile.role,
+    email: `mailto:${profile.email}`,
+    address: { '@type': 'PostalAddress', addressLocality: 'Puebla', addressCountry: 'MX' },
+    alumniOf: { '@type': 'CollegeOrUniversity', name: 'Tecnológico de Monterrey' },
+    knowsLanguage: ['es', 'en', 'de', 'fr'],
+    knowsAbout: cv.skills.map((k) => k.name),
+    sameAs: [profile.github, profile.linkedin].filter(Boolean),
+  };
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(person).replace(/</g, '\\u003c') }} />
       <SectionProgress
         label={t.progress.label}
         items={[
@@ -40,8 +58,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
         <div className="idcard">
           <span className="idcard-avatar" aria-hidden="true">
             {profile.avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={profile.avatar} alt="" />
+              <Image src={profile.avatar} alt="" width={48} height={48} sizes="48px" priority />
             ) : (
               profile.monogram
             )}
@@ -66,7 +83,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
         </div>
         <div className="drone-dock hero-dock" data-dock="start" aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="drone-poster" src="/models/eye-drone.webp" alt="" />
+          <img className="drone-poster" src="/models/eye-drone.webp" alt="" loading="lazy" />
         </div>
       </section>
 
@@ -134,7 +151,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
           </form>
           <div className="drone-dock ask-dock" data-dock="end" aria-hidden="true">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="drone-poster" src="/models/eye-drone.webp" alt="" />
+            <img className="drone-poster" src="/models/eye-drone.webp" alt="" loading="lazy" />
           </div>
         </div>
       </section>

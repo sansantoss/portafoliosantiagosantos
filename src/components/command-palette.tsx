@@ -27,10 +27,11 @@ export function openPalette() {
   window.dispatchEvent(new Event('open-palette'));
 }
 
-export function PaletteButton({ label }: { label: string }) {
+export function PaletteButton({ label, short }: { label: string; short: string }) {
   return (
-    <button type="button" className="kbd-btn" onClick={openPalette} aria-label={label}>
-      ⌘K
+    <button type="button" className="kbd-btn" onClick={openPalette} aria-label={`${label} (⌘K)`}>
+      <span className="kbd-long">⌘K</span>
+      <span className="kbd-short" aria-hidden="true">{short}</span>
     </button>
   );
 }

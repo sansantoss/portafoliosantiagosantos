@@ -46,7 +46,7 @@ const en = {
   progress: { label: 'Page sections', hero: 'Intro', projects: 'Projects', stack: 'Stack', graph: 'Graph', ask: 'Ask', more: 'Off the clock', journal: 'Journal' },
   foot: { links: 'Explore', contact: 'Contact', status: 'Status', time: 'Puebla time', top: 'Back to top' },
   meta: { role: 'Software & AI engineering' },
-  nav: { projects: 'Projects', journal: 'Journal', cv: 'CV', contact: 'Contact', home: 'home', menu: 'Open command menu', skip: 'Skip to content', language: 'Language', theme: 'Switch between light and dark' },
+  nav: { projects: 'Projects', journal: 'Journal', cv: 'CV', contact: 'Contact', home: 'home', menu: 'Open command menu', skip: 'Skip to content', language: 'Language', menuShort: 'Menu', theme: 'Switch between light and dark' },
   hero: { seeProjects: 'See projects', downloadCv: 'Download CV' },
   facts: { basedIn: 'Based in', focus: 'Focus', education: 'Education', status: 'Status', open: 'Open to opportunities', closed: 'Not looking right now' },
   projects: {
@@ -122,7 +122,7 @@ const es: typeof en = {
   progress: { label: 'Secciones de la página', hero: 'Inicio', projects: 'Proyectos', stack: 'Stack', graph: 'Grafo', ask: 'Pregunta', more: 'Fuera del código', journal: 'Journal' },
   foot: { links: 'Explora', contact: 'Contacto', status: 'Estatus', time: 'Hora en Puebla', top: 'Volver arriba' },
   meta: { role: 'Ingeniería de software e IA' },
-  nav: { projects: 'Proyectos', journal: 'Journal', cv: 'CV', contact: 'Contacto', home: 'inicio', menu: 'Abrir menú de comandos', skip: 'Ir al contenido', language: 'Idioma', theme: 'Cambiar entre claro y oscuro' },
+  nav: { projects: 'Proyectos', journal: 'Journal', cv: 'CV', contact: 'Contacto', home: 'inicio', menu: 'Abrir menú de comandos', skip: 'Ir al contenido', language: 'Idioma', menuShort: 'Menú', theme: 'Cambiar entre claro y oscuro' },
   hero: { seeProjects: 'Ver proyectos', downloadCv: 'Descargar CV' },
   facts: { basedIn: 'Ubicación', focus: 'Enfoque', education: 'Formación', status: 'Estatus', open: 'Abierto a oportunidades', closed: 'Sin buscar por ahora' },
   projects: {

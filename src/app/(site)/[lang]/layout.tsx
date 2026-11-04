@@ -16,6 +16,8 @@ import { Intro } from '@/components/intro';
 import { Interactions } from '@/components/interactions';
 import { PueblaClock } from '@/components/clock';
 import { Achievements, AchievementsButton } from '@/components/achievements';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { hasLocale, locales } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 
@@ -51,7 +53,9 @@ export async function generateMetadata({ params }: Omit<Props, 'children'>): Pro
       title: p.name,
       description: p.intro,
       locale: lang === 'es' ? 'es_MX' : 'en_US',
+      alternateLocale: lang === 'es' ? 'en_US' : 'es_MX',
     },
+    twitter: { card: 'summary_large_image' },
   };
 }
 
@@ -75,18 +79,18 @@ export default async function SiteLayout({ children, params }: Props) {
         <a href="#main" className="skip">{t.nav.skip}</a>
         <header className="site-header">
           <div className="wrap">
-            <Link href={`/${lang}`} className="brand" aria-label={`${profile.name}, ${t.nav.home}`}>
+            <Link href={`/${lang}`} className="brand" aria-label={`${profile.shortName}, ${t.nav.home}`}>
               <span className="monogram" aria-hidden="true">{profile.monogram}</span>
               <span className="brand-name">{profile.shortName}</span>
             </Link>
             <nav className="nav" aria-label="Main">
-              <Link href={`/${lang}#projects`}>{t.nav.projects}</Link>
-              <Link href={`/${lang}/journal`}>{t.nav.journal}</Link>
+              <Link href={`/${lang}#projects`} className="hide-xs">{t.nav.projects}</Link>
+              <Link href={`/${lang}/journal`} className="hide-xs">{t.nav.journal}</Link>
               <Link href={`/${lang}#cv`} className="hide-sm">{t.nav.cv}</Link>
               <a href={`mailto:${profile.email}`} className="hide-sm" style={{ color: 'var(--ink)' }}>{t.nav.contact} →</a>
               <LanguageSwitch lang={lang} label={t.nav.language} />
               <ThemeToggle label={t.nav.theme} />
-              <PaletteButton label={t.nav.menu} />
+              <PaletteButton label={t.nav.menu} short={t.nav.menuShort} />
             </nav>
           </div>
         </header>
@@ -149,6 +153,8 @@ export default async function SiteLayout({ children, params }: Props) {
         />
         <Toaster />
         <Achievements labels={t.achievements} />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
