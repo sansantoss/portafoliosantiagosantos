@@ -67,6 +67,9 @@ function localizeProject(lang: Locale, slug: string, e: RawProject) {
     demoUrl: e.demoUrl,
     cover: e.cover,
     video: e.video,
+    planet: e.planet ?? 'auto',
+    moons: e.moons ?? 0,
+    rings: e.rings ?? 'default',
     gallery: e.gallery
       .filter((g) => g.image)
       .map((g) => ({ image: g.image as string, caption: pick(lang, g.caption, g.captionEs) })),

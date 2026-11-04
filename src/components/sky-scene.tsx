@@ -48,9 +48,9 @@ const CITY = (() => {
 
 const WHEEL = { x: 1385, y: 380, r: 46 };
 
-type Labels = { label: string; toggle: string; hintDay: string; hintNight: string; place: string };
+type Labels = { label: string; toggle: string; hintDay: string; hintNight: string; place: string; launch: string };
 
-export function SkyScene({ labels, caption, children }: { labels: Labels; caption?: React.ReactNode; children?: React.ReactNode }) {
+export function SkyScene({ labels, caption, launchHref, children }: { labels: Labels; caption?: React.ReactNode; launchHref?: string; children?: React.ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
   // Pause every animation while the landscape is off screen.
   useEffect(() => {
@@ -192,6 +192,8 @@ export function SkyScene({ labels, caption, children }: { labels: Labels; captio
       </svg>
 
       {caption && <p className="sky-caption">{caption}</p>}
+      {/* the drone takes off from here: the way into SB-OS */}
+      {launchHref && <a className="sky-launch" href={launchHref}>{labels.launch} ↗</a>}
       <div className="sky-foot">{children}</div>
     </div>
   );

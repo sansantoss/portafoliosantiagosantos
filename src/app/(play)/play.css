@@ -1,0 +1,102 @@
+/* SB-OS: full-screen, always dark. HUD in the same type as the Studio (serif + mono). */
+:root {
+  --void: #03040a;
+  --panel: rgba(10, 13, 24, 0.72);
+  --line: rgba(160, 175, 230, 0.18);
+  --ink: #e9ebf3;
+  --ink-2: #aab0c8;
+  --muted: #7d849f;
+  --accent: #9fb2ff;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--void); color: var(--ink); overflow: hidden; }
+body { font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+button { font: inherit; }
+
+.sbos { position: fixed; inset: 0; }
+.sbos-canvas { position: absolute; inset: 0; }
+.sbos-canvas canvas { width: 100% !important; height: 100% !important; display: block; cursor: grab; }
+.sbos-canvas canvas:active { cursor: grabbing; }
+.sbos-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.pl-tag {
+  position: absolute; left: 0; top: 0; padding-bottom: 8px; white-space: nowrap; text-align: center;
+  font-family: var(--f-serif), Georgia, serif; font-size: 17px; color: var(--ink); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9);
+  transition: opacity 0.25s ease; will-change: transform;
+}
+.pl-tag span { display: block; font-family: var(--font-geist-mono), monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
+
+.sbos-top {
+  position: absolute; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) max(18px, env(safe-area-inset-right, 0px)) 14px max(18px, env(safe-area-inset-left, 0px));
+  font-family: var(--font-geist-mono), monospace; font-size: 12px; letter-spacing: 0.08em; pointer-events: none;
+}
+.sbos-brand { color: var(--ink-2); text-transform: uppercase; }
+.sbos-brand b { color: var(--ink); font-weight: 500; }
+.sbos-back { pointer-events: auto; text-decoration: none; padding: 9px 12px; border: 1px solid var(--line); background: var(--panel); backdrop-filter: blur(8px); min-height: 38px; display: inline-flex; align-items: center; }
+.sbos-back:hover { border-color: var(--accent); }
+
+.sbos-worlds {
+  position: absolute; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  display: flex; gap: 4px; max-width: calc(100% - 36px); overflow-x: auto; padding: 4px; background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(8px);
+}
+.sbos-worlds button {
+  white-space: nowrap; background: none; border: 0; color: var(--ink-2); padding: 8px 12px; cursor: pointer; min-height: 36px;
+  font-family: var(--font-geist-mono), monospace; font-size: 11.5px; letter-spacing: 0.04em;
+}
+.sbos-worlds button:hover { color: var(--ink); }
+.sbos-worlds button.on { color: var(--void); background: var(--accent); }
+.sbos-worlds button:focus-visible, .sbos-back:focus-visible, .sbos-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.sbos-card {
+  position: absolute; right: max(18px, env(safe-area-inset-right, 0px)); top: 50%; transform: translateY(-50%);
+  width: min(360px, calc(100% - 36px)); display: flex; flex-direction: column; gap: 12px; padding: 22px;
+  background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(12px); animation: card-in 0.35s ease both;
+}
+@keyframes card-in { from { opacity: 0; transform: translate(12px, -50%); } }
+.sbos-kind { font-family: var(--font-geist-mono), monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.sbos-card h2 { margin: 0; font-family: var(--f-serif), Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.02; }
+.sbos-card p { margin: 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.55; }
+.sbos-card ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.sbos-card li { font-family: var(--font-geist-mono), monospace; font-size: 11px; padding: 4px 8px; border: 1px solid var(--line); color: var(--ink); }
+.sbos-open { align-self: flex-start; text-decoration: none; padding: 10px 14px; background: var(--ink); color: var(--void); font-size: 14px; font-weight: 500; }
+.sbos-open:hover { background: var(--accent); }
+
+.sbos-help {
+  position: absolute; left: max(18px, env(safe-area-inset-left, 0px)); bottom: calc(76px + env(safe-area-inset-bottom, 0px)); margin: 0; max-width: 60ch;
+  font-family: var(--font-geist-mono), monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.04em; pointer-events: none;
+}
+
+.sbos-stick {
+  position: absolute; left: max(22px, env(safe-area-inset-left, 0px)); bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  width: 104px; height: 104px; border-radius: 50%; border: 1px solid var(--line); background: rgba(10, 13, 24, 0.45); touch-action: none;
+  display: grid; place-items: center;
+}
+.sbos-stick span { width: 44px; height: 44px; border-radius: 50%; background: rgba(159, 178, 255, 0.35); border: 1px solid var(--accent); pointer-events: none; }
+
+.sbos-boot {
+  position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; background: var(--void); transition: opacity 0.5s ease;
+  font-family: var(--font-geist-mono), monospace; font-size: 13px; color: var(--accent); cursor: pointer;
+}
+.sbos-boot p { margin: 6px 0; opacity: 0; animation: boot-line 0.3s ease forwards; }
+.sbos-boot button { position: absolute; right: 22px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); background: none; border: 1px solid var(--line); color: var(--ink-2); padding: 8px 12px; cursor: pointer; font-family: inherit; font-size: 12px; }
+@keyframes boot-line { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.sbos-fallback { position: absolute; inset: 0; overflow: auto; padding: 90px 22px 40px; max-width: 640px; margin: 0 auto; }
+.sbos-fallback p { color: var(--ink-2); }
+.sbos-fallback ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.sbos-fallback li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 10px; font-family: var(--f-serif), Georgia, serif; font-size: 22px; }
+.sbos-fallback li span { font-family: var(--font-geist-mono), monospace; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; }
+
+@media (max-width: 700px) {
+  .sbos-card { top: auto; bottom: calc(70px + env(safe-area-inset-bottom, 0px)); transform: none; right: 18px; width: calc(100% - 160px); padding: 14px; gap: 8px; animation: none; }
+  .sbos-card h2 { font-size: 26px; }
+  .sbos-card p { font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .sbos-card ul { display: none; }
+  .sbos-help { bottom: auto; top: calc(56px + env(safe-area-inset-top, 0px)); }
+  .pl-tag { font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sbos-card, .sbos-boot p { animation: none; opacity: 1; }
+}

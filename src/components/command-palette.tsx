@@ -129,6 +129,9 @@ export function CommandPalette({ lang, t, emailCopied, projects, posts, email, g
               <Command.Item onSelect={() => go(`/${lang}#projects`)}><Arrow /><span className="grow">{t.projects}</span></Command.Item>
               <Command.Item onSelect={() => go(`/${lang}/journal`)}><Arrow /><span className="grow">{t.journal}</span></Command.Item>
               <Command.Item onSelect={() => go(`/${lang}#cv`)}><Arrow /><span className="grow">{t.cv}</span></Command.Item>
+              <Command.Item keywords={['play', 'sb-os', 'space', 'espacio', 'juego', 'game', 'drone', '3d']} onSelect={() => go(`/${lang}/play`)}>
+                <Arrow /><span className="grow">{t.play}</span>
+              </Command.Item>
             </Command.Group>
 
             <Command.Group heading={t.projects}>

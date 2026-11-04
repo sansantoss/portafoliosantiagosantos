@@ -110,6 +110,7 @@ export default async function SiteLayout({ children, params }: Props) {
                 <Link href={`/${lang}/journal`}>{t.nav.journal}</Link>
                 <Link href={`/${lang}#cv`}>{t.nav.cv}</Link>
                 <Link href={`/${lang}/setup`}>{t.setup.title}</Link>
+                <a href={`/${lang}/play`}>SB-OS ↗</a>
                 <AchievementsButton label={t.achievements.button} />
               </div>
               <div>
@@ -131,6 +132,7 @@ export default async function SiteLayout({ children, params }: Props) {
           </div>
           <SkyScene
             labels={t.sky}
+            launchHref={`/${lang}/play`}
             caption={<>{profile.quote ? <>“{profile.quote}”</> : null}<small>{t.sky.place}</small></>}
           >
             <div className="wrap foot-row">
