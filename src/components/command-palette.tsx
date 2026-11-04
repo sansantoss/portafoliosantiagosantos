@@ -185,7 +185,6 @@ export function CommandPalette({ lang, t, emailCopied, projects, posts, email, g
                 onSelect={() => run(() => {
                   const next = toggleTheme();
                   showToast(next === 'dark' ? t.dark : t.light);
-                  if (next === 'dark') achieve('night');
                 })}
               >
                 <Sun />

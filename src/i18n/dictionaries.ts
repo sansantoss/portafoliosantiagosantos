@@ -2,7 +2,16 @@ import type { Locale } from './config';
 
 // Every piece of fixed interface text, in both languages.
 const en = {
-  tokens: { show: 'See it as tokens', hide: 'Back to words', tokens: 'tokens', model: 'o200k · GPT-4o tokenizer' },
+  tokens: {
+    show: 'Show tokens', tokens: 'tokens', model: 'o200k · GPT-4o tokenizer', took: 'tokenized in',
+    map: 'Attention · hover a token', attends: 'attends most to', itself: 'itself',
+    note: 'The tokens are real. The attention pattern is an illustration of how a decoder looks back, not a model run.',
+  },
+  sky: {
+    label: 'Puebla from the west: Popocatépetl, Iztaccíhuatl, the Cholula pyramid and the city',
+    toggle: 'Switch between day and night', hintDay: 'Tap the sun', hintNight: 'Tap the moon',
+    place: 'Puebla · 19.04° N, 98.20° W',
+  },
   graph: {
     title: 'How it connects', lede: 'Projects and the technologies behind them. The same map will power Ask my CV.',
     legendProject: 'Project', legendTech: 'Technology', legendPost: 'Journal post', hint: 'Hover a node to see its connections',
@@ -37,7 +46,7 @@ const en = {
   progress: { label: 'Page sections', hero: 'Intro', projects: 'Projects', stack: 'Stack', graph: 'Graph', ask: 'Ask', more: 'Off the clock', journal: 'Journal' },
   foot: { links: 'Explore', contact: 'Contact', status: 'Status', time: 'Puebla time', top: 'Back to top' },
   meta: { role: 'Software & AI engineering' },
-  nav: { projects: 'Projects', journal: 'Journal', cv: 'CV', contact: 'Contact', home: 'home', menu: 'Open command menu', skip: 'Skip to content', language: 'Language' },
+  nav: { projects: 'Projects', journal: 'Journal', cv: 'CV', contact: 'Contact', home: 'home', menu: 'Open command menu', skip: 'Skip to content', language: 'Language', theme: 'Switch between light and dark' },
   hero: { seeProjects: 'See projects', downloadCv: 'Download CV' },
   facts: { basedIn: 'Based in', focus: 'Focus', education: 'Education', status: 'Status', open: 'Open to opportunities', closed: 'Not looking right now' },
   projects: {
@@ -69,7 +78,16 @@ const en = {
 };
 
 const es: typeof en = {
-  tokens: { show: 'Verlo como tokens', hide: 'Volver a palabras', tokens: 'tokens', model: 'o200k · tokenizador de GPT-4o' },
+  tokens: {
+    show: 'Ver tokens', tokens: 'tokens', model: 'o200k · tokenizador de GPT-4o', took: 'tokenizado en',
+    map: 'Atención · pasa el cursor por un token', attends: 'mira sobre todo a', itself: 'sí mismo',
+    note: 'Los tokens son reales. El patrón de atención es una ilustración de cómo un decoder mira hacia atrás, no la salida de un modelo.',
+  },
+  sky: {
+    label: 'Puebla desde el poniente: el Popocatépetl, el Iztaccíhuatl, la pirámide de Cholula y la ciudad',
+    toggle: 'Cambiar entre día y noche', hintDay: 'Toca el sol', hintNight: 'Toca la luna',
+    place: 'Puebla · 19.04° N, 98.20° O',
+  },
   graph: {
     title: 'Cómo se conecta', lede: 'Mis proyectos y las tecnologías detrás de ellos. Este mismo mapa alimentará Pregúntale a mi CV.',
     legendProject: 'Proyecto', legendTech: 'Tecnología', legendPost: 'Post del journal', hint: 'Pasa el mouse por un nodo para ver sus conexiones',
@@ -104,7 +122,7 @@ const es: typeof en = {
   progress: { label: 'Secciones de la página', hero: 'Inicio', projects: 'Proyectos', stack: 'Stack', graph: 'Grafo', ask: 'Pregunta', more: 'Fuera del código', journal: 'Journal' },
   foot: { links: 'Explora', contact: 'Contacto', status: 'Estatus', time: 'Hora en Puebla', top: 'Volver arriba' },
   meta: { role: 'Ingeniería de software e IA' },
-  nav: { projects: 'Proyectos', journal: 'Journal', cv: 'CV', contact: 'Contacto', home: 'inicio', menu: 'Abrir menú de comandos', skip: 'Ir al contenido', language: 'Idioma' },
+  nav: { projects: 'Proyectos', journal: 'Journal', cv: 'CV', contact: 'Contacto', home: 'inicio', menu: 'Abrir menú de comandos', skip: 'Ir al contenido', language: 'Idioma', theme: 'Cambiar entre claro y oscuro' },
   hero: { seeProjects: 'Ver proyectos', downloadCv: 'Descargar CV' },
   facts: { basedIn: 'Ubicación', focus: 'Enfoque', education: 'Formación', status: 'Estatus', open: 'Abierto a oportunidades', closed: 'Sin buscar por ahora' },
   projects: {

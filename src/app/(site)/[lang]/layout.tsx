@@ -9,6 +9,8 @@ import { getPosts, getProfile, getProjects, formatDate } from '@/lib/content';
 import { CommandPalette, PaletteButton } from '@/components/command-palette';
 import { CopyEmail } from '@/components/copy-email';
 import { LanguageSwitch } from '@/components/language-switch';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { SkyScene } from '@/components/sky-scene';
 import { Toaster } from '@/components/toast';
 import { Intro } from '@/components/intro';
 import { Interactions } from '@/components/interactions';
@@ -83,6 +85,7 @@ export default async function SiteLayout({ children, params }: Props) {
               <Link href={`/${lang}#cv`} className="hide-sm">{t.nav.cv}</Link>
               <a href={`mailto:${profile.email}`} className="hide-sm" style={{ color: 'var(--ink)' }}>{t.nav.contact} →</a>
               <LanguageSwitch lang={lang} label={t.nav.language} />
+              <ThemeToggle label={t.nav.theme} />
               <PaletteButton label={t.nav.menu} />
             </nav>
           </div>
@@ -121,12 +124,16 @@ export default async function SiteLayout({ children, params }: Props) {
                 <PueblaClock lang={lang} />
               </div>
             </div>
-            {profile.quote && <p className="foot-quote">“{profile.quote}”</p>}
-            <div className="foot-row">
+          </div>
+          <SkyScene
+            labels={t.sky}
+            caption={<>{profile.quote ? <>“{profile.quote}”</> : null}<small>{t.sky.place}</small></>}
+          >
+            <div className="wrap foot-row">
               <span className="muted">© {year} {profile.name} · {t.footer.press}</span>
               <a href="#main" className="muted">{t.foot.top} ↑</a>
             </div>
-          </div>
+          </SkyScene>
         </footer>
 
         <CommandPalette
