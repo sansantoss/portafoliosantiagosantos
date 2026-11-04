@@ -4,6 +4,7 @@ import Markdoc, { type Node } from '@markdoc/markdoc';
 import React from 'react';
 import keystaticConfig from '../../keystatic.config';
 import type { Locale } from '@/i18n/config';
+import { forceCollide, forceLink, forceManyBody, forceSimulation, forceX, forceY, type SimulationNodeDatum } from 'd3-force';
 
 export const reader = createReader(process.cwd(), keystaticConfig);
 
@@ -197,5 +198,49 @@ export async function getGraph(lang: Locale) {
     nodes.push({ id, label: post.title ?? post.slug, kind: 'post', href: `/${lang}/journal/${post.slug}` });
     related.forEach((t) => links.push({ source: id, target: t }));
   }
-  return { nodes, links };
+  return layoutGraph(nodes, links);
+}
+
+const GW = 1000;
+
+/*
+  Runs the force layout once, on the server, so the browser receives final positions (no hydration
+  mismatch, no layout work on the client). Collision radii include each label's width so names don't overlap.
+*/
+function layoutGraph(
+  nodes: { id: string; label: string; kind: 'project' | 'tech' | 'post'; href?: string; group?: string }[],
+  links: { source: string; target: string }[]
+) {
+  type N = (typeof nodes)[number] & SimulationNodeDatum & { degree: number; r: number };
+  const deg = new Map<string, number>();
+  links.forEach((l) => { deg.set(l.source, (deg.get(l.source) ?? 0) + 1); deg.set(l.target, (deg.get(l.target) ?? 0) + 1); });
+  const r = (kind: string, d: number) => (kind === 'project' ? 9 : kind === 'post' ? 6 : 4 + Math.min(5, d * 1.5));
+  const labelW = (n: { label: string; kind: string }) => n.label.length * (n.kind === 'project' ? 8.6 : 7.4);
+  const sim: N[] = nodes.map((n, i) => {
+    const d = deg.get(n.id) ?? 0;
+    return { ...n, degree: d, r: r(n.kind, d), x: GW / 2 + Math.cos(i * 2.4) * (140 + (i % 7) * 30), y: 260 + Math.sin(i * 2.4) * (100 + (i % 5) * 25) };
+  });
+  const simLinks = links.map((l) => ({ ...l }));
+  const s = forceSimulation(sim)
+    .force('link', forceLink(simLinks).id((d) => (d as N).id).distance(95).strength(0.45))
+    .force('charge', forceManyBody().strength((d) => ((d as N).kind === 'project' ? -650 : -220)))
+    .force('collide', forceCollide((d) => Math.max((d as N).r + 20, labelW(d as N) / 2 + 10)).strength(0.9).iterations(3))
+    .force('x', forceX(GW / 2).strength(0.04))
+    .force('y', forceY(260).strength(0.1))
+    .stop();
+  for (let i = 0; i < 400; i++) s.tick();
+
+  // Fit the result into a 1000-wide frame with room for labels, and round so server output is stable.
+  const pad = 70;
+  const xs = sim.map((n) => n.x ?? 0), ys = sim.map((n) => n.y ?? 0);
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+  const scale = Math.min(1, (GW - 2 * pad) / Math.max(1, maxX - minX));
+  const height = Math.round((maxY - minY) * scale + 2 * pad + 20);
+  const round = (v: number) => Math.round(v * 10) / 10;
+  const placed = sim.map((n) => ({
+    id: n.id, label: n.label, kind: n.kind, href: n.href, group: n.group, r: n.r,
+    x: round(pad + ((n.x ?? 0) - minX) * scale + (GW - 2 * pad - (maxX - minX) * scale) / 2),
+    y: round(pad - 10 + ((n.y ?? 0) - minY) * scale),
+  }));
+  return { nodes: placed, links, width: GW, height };
 }

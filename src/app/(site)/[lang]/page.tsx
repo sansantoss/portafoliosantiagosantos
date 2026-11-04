@@ -111,7 +111,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
           <span className="label">{graph.nodes.length} · {graph.links.length}</span>
         </div>
         <p className="section-lede">{t.graph.lede}</p>
-        <KnowledgeGraph nodes={graph.nodes} links={graph.links} labels={t.graph} />
+        <KnowledgeGraph nodes={graph.nodes} links={graph.links} width={graph.width} height={graph.height} labels={t.graph} />
       </section>
 
       <section id="ask" className="wrap section" style={{ scrollMarginTop: 90 }}>
