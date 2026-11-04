@@ -7,7 +7,7 @@ import { copyText, showToast } from './toast';
 import { toggleTheme } from './theme';
 import { droneCelebrate, droneLook } from './drone-events';
 import { achieve } from './achievements';
-import { otherLocale, rememberLocale, switchLocalePath, type Locale } from '@/i18n/config';
+import { beforeLocaleSwitch, otherLocale, switchLocalePath, type Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/dictionaries';
 
 type Item = { slug: string; title: string; hint?: string };
@@ -195,9 +195,8 @@ export function CommandPalette({ lang, t, emailCopied, projects, posts, email, g
                 keywords={['language', 'idioma', 'english', 'español', 'spanish', 'ingles']}
                 onSelect={() => run(() => {
                   const to = otherLocale(lang);
-                  rememberLocale(to);
-                  achieve('polyglot');
-                  router.push(switchLocalePath(pathname, to));
+                  beforeLocaleSwitch(to);
+                  window.location.assign(switchLocalePath(pathname, to));
                 })}
               >
                 <Globe />

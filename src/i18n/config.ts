@@ -18,3 +18,15 @@ export function switchLocalePath(pathname: string, to: Locale) {
 export function rememberLocale(to: Locale) {
   document.cookie = `${LOCALE_COOKIE}=${to};path=/;max-age=31536000;samesite=lax`;
 }
+
+export const SWITCHED_FLAG = 'sb-switched-lang';
+
+/*
+  Switching language is a full page load, not a client-side navigation: the <html lang> and the
+  root layout change, and re-rendering the root layout on the client trips React over the theme
+  <script> in <head>. The flag lets the next page award the "polyglot" achievement.
+*/
+export function beforeLocaleSwitch(to: Locale) {
+  rememberLocale(to);
+  try { sessionStorage.setItem(SWITCHED_FLAG, '1'); } catch { /* storage blocked: no achievement, still switches */ }
+}

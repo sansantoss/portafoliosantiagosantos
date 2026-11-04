@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { SWITCHED_FLAG } from '@/i18n/config';
 
 /*
   Small achievements for exploring the site. Progress is a per-visitor convenience kept in this
@@ -50,13 +51,22 @@ export function Achievements({ labels }: { labels: Labels }) {
 
     // Built-in triggers that need no wiring elsewhere.
     const first = setTimeout(() => achieve('hello'), 2500);
+    // Arrived here by switching language (flag set just before the reload). Cleared only once awarded,
+    // so a double-run effect in dev doesn't lose it.
+    const poly = setTimeout(() => {
+      try {
+        if (sessionStorage.getItem(SWITCHED_FLAG) !== '1') return;
+        sessionStorage.removeItem(SWITCHED_FLAG);
+        achieve('polyglot');
+      } catch { /* blocked */ }
+    }, 600);
     const onScroll = () => {
       if (innerHeight + scrollY >= document.documentElement.scrollHeight - 40) achieve('explorer');
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     if (/\/projects\//.test(location.pathname)) achieve('reader');
     return () => {
-      cancelAnimationFrame(init); clearTimeout(t); clearTimeout(first);
+      cancelAnimationFrame(init); clearTimeout(t); clearTimeout(first); clearTimeout(poly);
       window.removeEventListener('achievement', on);
       window.removeEventListener('achievements:open', openPanel);
       window.removeEventListener('scroll', onScroll);
