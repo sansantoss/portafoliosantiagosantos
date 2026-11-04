@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { planetFragment, PLANET_VERT } from './planet-shader';
-import { HOLE_FRAG, QUAD_VERT, SKY_FRAG, SKY_VERT } from './space-shaders';
+import { HOLE_FRAG, HOLE_VERT, SKY_FRAG, SKY_VERT } from './space-shaders';
+import { createDogfights } from './ships';
 import { worldFor } from './worlds';
 
 export type PlayProject = {
@@ -55,12 +56,17 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
         const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
         const { MeshoptDecoder } = await import('three/examples/jsm/libs/meshopt_decoder.module.js');
         const { RoomEnvironment } = await import('three/examples/jsm/environments/RoomEnvironment.js');
+        const { EffectComposer } = await import('three/examples/jsm/postprocessing/EffectComposer.js');
+        const { RenderPass } = await import('three/examples/jsm/postprocessing/RenderPass.js');
+        const { UnrealBloomPass } = await import('three/examples/jsm/postprocessing/UnrealBloomPass.js');
+        const { OutputPass } = await import('three/examples/jsm/postprocessing/OutputPass.js');
         if (cancelled) return;
 
         const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
         const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
         renderer.setPixelRatio(Math.min(devicePixelRatio, 1.6));
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.0;
         el.appendChild(renderer.domElement);
 
         const scene = new THREE.Scene();
@@ -74,22 +80,22 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
           new THREE.ShaderMaterial({ vertexShader: SKY_VERT, fragmentShader: SKY_FRAG, side: THREE.BackSide, depthWrite: false, uniforms: { uTime: { value: 0 } } })
         );
         scene.add(sky);
-        {
-          const n = 4500, pos = new Float32Array(n * 3), colr = new Float32Array(n * 3);
-          let s = 7;
-          const rnd = () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646;
-          for (let i = 0; i < n; i++) {
-            const u = rnd() * 2 - 1, th = rnd() * Math.PI * 2, rr = 1200;
-            const q = Math.sqrt(1 - u * u);
-            pos.set([Math.cos(th) * q * rr, u * rr, Math.sin(th) * q * rr], i * 3);
-            const t = rnd(), b = 0.55 + rnd() * 0.45;
-            colr.set(t < 0.1 ? [b, b * 0.85, b * 0.7] : t < 0.25 ? [b * 0.8, b * 0.88, b] : [b, b, b], i * 3);
-          }
+        // drifting dust near the camera, for a sense of speed (the stars themselves are in the sky shader)
+        const dust = (() => {
+          const n = 900, pos = new Float32Array(n * 3);
+          for (let i = 0; i < n; i++) pos.set([(Math.random() - 0.5) * 160, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 160], i * 3);
           const g = new THREE.BufferGeometry();
           g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-          g.setAttribute('color', new THREE.BufferAttribute(colr, 3));
-          scene.add(new THREE.Points(g, new THREE.PointsMaterial({ size: 1.6, sizeAttenuation: false, vertexColors: true, depthWrite: false })));
-        }
+          // round, soft dots (the default square points look like pixels up close)
+          const c = document.createElement('canvas'); c.width = c.height = 32;
+          const cx = c.getContext('2d')!;
+          const grd = cx.createRadialGradient(16, 16, 0, 16, 16, 16);
+          grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
+          cx.fillStyle = grd; cx.fillRect(0, 0, 32, 32);
+          const pts = new THREE.Points(g, new THREE.PointsMaterial({ size: 0.12, map: new THREE.CanvasTexture(c), color: 0x8f9cc8, transparent: true, opacity: 0.5, depthWrite: false }));
+          scene.add(pts);
+          return { pts, pos, n };
+        })();
 
         const premult = (m: InstanceType<typeof THREE.ShaderMaterial>) => {
           m.transparent = true; m.depthWrite = false;
@@ -98,9 +104,23 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
         };
 
         // --- black hole (SB-0) ---
-        const HOLE_R = 6, HOLE_Q = 34;
-        const holeMat = premult(new THREE.ShaderMaterial({ vertexShader: QUAD_VERT, fragmentShader: HOLE_FRAG, uniforms: { uTime: { value: 0 }, uHole: { value: HOLE_R / HOLE_Q } } }));
-        const hole = new THREE.Mesh(new THREE.PlaneGeometry(HOLE_Q * 2, HOLE_Q * 2), holeMat);
+        // rs = Schwarzschild radius in world units. Disk from 3 rs (innermost stable orbit) to 13 rs.
+        const RS = 5, BOUND = 17;
+        const HOLE_R = RS;
+        const tiltM = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0.12, 0, -0.08));
+        const basis = new THREE.Matrix3().setFromMatrix4(tiltM.clone().invert());
+        const holeMat = premult(new THREE.ShaderMaterial({
+          vertexShader: HOLE_VERT, fragmentShader: HOLE_FRAG,
+          uniforms: {
+            uTime: { value: 0 }, uRs: { value: RS }, uCenter: { value: new THREE.Vector3() }, uBasis: { value: basis },
+            uIn: { value: 3 }, uOut: { value: 13 }, uBound: { value: BOUND },
+          },
+        }));
+        holeMat.uniforms.uInvViewProj = { value: new THREE.Matrix4() };
+        holeMat.uniforms.uDepth = { value: 0.5 };
+        holeMat.depthTest = true;
+        const hole = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), holeMat);
+        hole.frustumCulled = false;
         scene.add(hole);
         const warm = new THREE.PointLight(0xffb27a, 2.2, 0, 0);
         scene.add(warm);
@@ -129,15 +149,15 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
             uRing: { value: ringOn ? world.ring ?? 0.8 : 0 }, uRingCol: { value: new THREE.Vector3(...hex(world.ringCol ?? '#cfc6b8')) },
             uRingR: { value: new THREE.Vector2(...(world.ringR ?? [1.35, 1.9])) }, uStorm: { value: world.storm ?? 0 },
             uTilt: { value: 0.18 + ((w.seed * 0.6180339) % 1) * 0.35 },
-            uLight: { value: new THREE.Vector3(-0.6, 0.3, 0.7) }, uMoons: { value: w.moons }, uBelt: { value: beltOn ? 1 : 0 },
+            uLight: { value: new THREE.Vector3(-0.6, 0.3, 0.7) }, uLightCol: { value: new THREE.Vector3(1.25, 1.06, 0.86) }, uMoons: { value: w.moons }, uBelt: { value: beltOn ? 1 : 0 },
             uBeltR: { value: new THREE.Vector2(...(ringOn ? [2.15, 2.6] : [1.45, 2.1])) },
           };
           const mat = premult(new THREE.ShaderMaterial({ vertexShader: PLANET_VERT, fragmentShader: frag, uniforms: u }));
           const mesh = new THREE.Mesh(new THREE.PlaneGeometry(half * 2, half * 2), mat);
           // a loose spiral around the hole, a little above and below the disk
           const ang = (i / Math.max(1, projects.length)) * Math.PI * 2 + 0.6;
-          const dist = 62 + i * 14;
-          mesh.position.set(Math.cos(ang) * dist, Math.sin(i * 1.7) * 4, Math.sin(ang) * dist);
+          const dist = 104 + i * 17;
+          mesh.position.set(Math.cos(ang) * dist, Math.sin(i * 1.7) * 6, Math.sin(ang) * dist);
           scene.add(mesh);
           return { mesh, u, radius, project: p, world: world.name };
         });
@@ -169,7 +189,7 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
         drone.position.copy(start);
         const vel = new THREE.Vector3();
         let yaw = Math.atan2(-start.x, -start.z);
-        let camAz = Math.atan2(start.x, start.z) + 0.25, camEl = 0.32, camDist = 34;
+        let camAz = Math.atan2(start.x, start.z) + 0.25, camEl = 0.2, camDist = 34;
 
         // --- input ---
         const keys = new Set<string>();
@@ -220,7 +240,7 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
             if (d < sr * 1.2 && d < bd) { bd = d; best = t; }
           };
           planets.forEach((p, i) => test(p.mesh.position, p.radius, { kind: 'planet', index: i }));
-          test(new THREE.Vector3(), HOLE_R * 1.5, { kind: 'hole' });
+          test(new THREE.Vector3(), HOLE_R * 3, { kind: 'hole' });
           if (best) target = best;
         };
         const wheel = (e: WheelEvent) => { camDist = Math.min(70, Math.max(14, camDist + e.deltaY * 0.03)); e.preventDefault(); };
@@ -244,9 +264,21 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
           return d;
         });
 
+        // bloom: the disk, the lasers, the city lights and the bright stars glow
+        const composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+        const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.4, 0.82);
+        composer.addPass(bloom);
+        composer.addPass(new OutputPass());
+
+        const fights = createDogfights(THREE, scene, reduce);
+
         const resize = () => {
           const w = el.clientWidth, h = el.clientHeight;
           renderer.setSize(w, h, false);
+          composer.setPixelRatio(renderer.getPixelRatio());
+          composer.setSize(w, h);
+          bloom.resolution.set(w / 2, h / 2);
           camera.aspect = w / h; camera.updateProjectionMatrix();
         };
         resize();
@@ -283,7 +315,7 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
           // autopilot towards a planet or the hole
           if (target && !want.lengthSq()) {
             const goal = target.kind === 'planet' ? planets[target.index].mesh.position : new THREE.Vector3();
-            const stopAt = target.kind === 'planet' ? planets[target.index].radius * 2.6 + 6 : HOLE_R * 4.2;
+            const stopAt = target.kind === 'planet' ? planets[target.index].radius * 2.6 + 6 : HOLE_R * 11;
             tmp.copy(goal).sub(drone.position);
             const d = tmp.length();
             if (d > stopAt) {
@@ -292,7 +324,7 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
               const toHole = drone.position.clone().negate();
               const along = toHole.dot(want);
               const miss = toHole.clone().addScaledVector(want, -along).length();
-              if (target.kind === 'planet' && along > 0 && along < d && miss < HOLE_R * 6) {
+              if (target.kind === 'planet' && along > 0 && along < d && miss < HOLE_R * 12) {
                 const side = new THREE.Vector3(want.z, 0, -want.x);
                 if (side.dot(toHole) > 0) side.negate();
                 want.addScaledVector(side, 1.2).normalize();
@@ -310,9 +342,9 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
             const minD = p.radius + 3;
             if (tmp.length() < minD) drone.position.copy(p.mesh.position).addScaledVector(tmp.normalize(), minD);
           });
-          if (drone.position.length() < HOLE_R * 3) drone.position.setLength(HOLE_R * 3);
+          if (drone.position.length() < HOLE_R * 3.6) drone.position.setLength(HOLE_R * 3.6);
           drone.position.y += (0 - drone.position.y) * dt * 0.5;
-          const maxR = 260;
+          const maxR = 330;
           if (drone.position.length() > maxR) drone.position.setLength(maxR);
 
           // face where it is going; bob a little
@@ -336,12 +368,18 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
           camera.updateMatrixWorld();
 
           // billboards face the camera; planets are lit by the hole's disk
-          hole.quaternion.copy(camera.quaternion);
           holeMat.uniforms.uTime.value = t;
+          holeMat.uniforms.uInvViewProj.value.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse).invert();
+          tmp.set(0, 0, 0).project(camera);
+          holeMat.uniforms.uDepth.value = Math.min(0.9999, Math.max(0, tmp.z * 0.5 + 0.5));
+          const holeDist = camera.position.length();
+          hole.renderOrder = 0;
+          (sky as InstanceType<typeof THREE.Mesh>).renderOrder = -2;
           (sky.material as InstanceType<typeof THREE.ShaderMaterial>).uniforms.uTime.value = t;
           let closest: Target = null, cd = Infinity;
           planets.forEach((p, i) => {
             p.mesh.quaternion.copy(camera.quaternion);
+            p.mesh.renderOrder = camera.position.distanceTo(p.mesh.position) > holeDist ? -1 : 1;
             p.u.uTime.value = t;
             lightDir.copy(p.mesh.position).negate().normalize().transformDirection(camera.matrixWorldInverse);
             lightDir.z = Math.max(lightDir.z, -0.6); // keep a sliver of light so no planet is a black disc
@@ -356,11 +394,23 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
             tag.style.opacity = '1';
             tag.style.transform = `translate(${(tmp.x * 0.5 + 0.5) * el.clientWidth}px, ${(-tmp.y * 0.5 + 0.5) * el.clientHeight}px) translate(-50%, -100%)`;
           });
-          if (!closest && drone.position.length() < HOLE_R * 6) closest = { kind: 'hole' };
+          if (!closest && drone.position.length() < HOLE_R * 15) closest = { kind: 'hole' };
           const changed = JSON.stringify(closest) !== JSON.stringify(nearRef);
           if (changed) { nearRef = closest; setNear(closest); }
 
-          renderer.render(scene, camera);
+          // dust wraps around the camera
+          for (let i = 0; i < dust.n; i++) {
+            for (let k = 0; k < 3; k++) {
+              const span = k === 1 ? 80 : 160;
+              let v = dust.pos[i * 3 + k] - camTarget.getComponent(k);
+              v = ((v + span / 2) % span + span) % span - span / 2;
+              dust.pos[i * 3 + k] = camTarget.getComponent(k) + v;
+            }
+          }
+          dust.pts.geometry.attributes.position.needsUpdate = true;
+
+          fights.update(dt, t);
+          composer.render();
         };
         tick();
         setReady(true);
@@ -371,7 +421,7 @@ export function SbOs({ projects, labels, home, kinds }: { projects: PlayProject[
           canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move);
           canvas.removeEventListener('pointerup', up); canvas.removeEventListener('wheel', wheel);
           tags.forEach((d) => d.remove());
-          renderer.dispose(); pmrem.dispose();
+          fights.dispose(); composer.dispose(); renderer.dispose(); pmrem.dispose();
           canvas.remove();
         };
       } catch (err) {

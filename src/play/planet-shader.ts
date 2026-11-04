@@ -28,6 +28,7 @@ uniform vec3 uEmit; uniform float uEmitS;
 uniform float uRing; uniform vec3 uRingCol; uniform vec2 uRingR; uniform float uStorm;
 uniform float uTilt;
 uniform vec3 uLight;      // light direction in view space
+uniform vec3 uLightCol;   // light colour (warm near the black hole)
 uniform float uMoons;     // 0..4
 uniform float uBelt;      // asteroid belt instead of / besides rings
 uniform vec2 uBeltR;
@@ -56,7 +57,7 @@ float snoise(vec3 v){
   vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0); m=m*m;
   return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
 }
-float fbm(vec3 p){ float a=0.5, s=0.0; for(int i=0;i<5;i++){ s+=a*snoise(p); p=p*2.02+vec3(1.7,9.2,3.1); a*=0.5; } return s; }
+float fbm(vec3 p){ float a=0.5, s=0.0; for(int i=0;i<6;i++){ s+=a*snoise(p); p=p*2.02+vec3(1.7,9.2,3.1); a*=0.5; } return s; }
 float fbm3(vec3 p){ float a=0.5, s=0.0; for(int i=0;i<3;i++){ s+=a*snoise(p); p=p*2.03+vec3(5.1,1.3,7.7); a*=0.5; } return s; }
 
 mat3 rotY(float a){ float c=cos(a), s=sin(a); return mat3(c,0.0,-s, 0.0,1.0,0.0, s,0.0,c); }
@@ -176,16 +177,25 @@ void main(){
       }
     }
 
-    vec3 lit=col*(0.035+0.965*wrap);
+    vec3 lit=col*(0.03+0.97*wrap)*uLightCol;
     vec3 V=vec3(0.0,0.0,1.0);
-    lit+=vec3(1.0,0.97,0.9)*pow(max(dot(reflect(-L,n),V),0.0),36.0)*0.55*spec*wrap;
+    float rv=max(dot(reflect(-L,n),V),0.0);
+    float fr=0.25+0.75*pow(1.0-n.z,4.0);
+    lit+=uLightCol*(pow(rv,60.0)*0.9+pow(rv,8.0)*0.12*fr)*spec*wrap;
 
     if(uClouds>0.0){
-      float c=fbm(sp*2.6+vec3(uTime*0.012,0.0,uTime*0.008)+uSeed*1.3)*0.5+0.5;
+      vec3 drift=vec3(uTime*0.012,0.0,uTime*0.008)+uSeed*1.3;
+      float c=fbm(sp*2.6+drift)*0.5+0.5;
       float ca=smoothstep(0.62-uClouds*0.28,0.9,c)*min(1.0,uClouds*1.3);
-      lit=mix(lit, uCloud*(0.04+0.96*wrap), ca);
+      // clouds cast shadows on the ground, offset towards the light
+      vec3 Ls=rotY(spin)*(Mi*L);
+      float cs=fbm((sp+Ls*0.035)*2.6+drift)*0.5+0.5;
+      lit*=1.0-0.45*smoothstep(0.62-uClouds*0.28,0.9,cs)*min(1.0,uClouds*1.3)*wrap;
+      lit=mix(lit, uCloud*uLightCol*(0.04+0.96*wrap), ca);
       emit*=1.0-ca*0.7;
     }
+    // warm band along the terminator, where the light crosses the most atmosphere
+    lit+=vec3(1.0,0.48,0.22)*exp(-pow((ndl-0.03)*6.0,2.0))*0.16*uAtmoS;
     lit+=emit;
 
     float fres=pow(1.0-n.z,2.4);
@@ -258,10 +268,13 @@ void main(){
       }
     }
   }
+#ifdef LINEAR_OUT
+  outc.rgb=pow(max(outc.rgb,vec3(0.0)),vec3(2.2));
+#endif
   gl_FragColor=outc;
 }`;
 
 /** The fragment shader for a three.js quad (uv 0..1 across the quad). */
-export const planetFragment = () => `varying vec2 vUv;\n#define PLANET_UV (vUv*2.0-1.0)\n${FRAG_BODY}`;
+export const planetFragment = () => `varying vec2 vUv;\n#define LINEAR_OUT\n#define PLANET_UV (vUv*2.0-1.0)\n${FRAG_BODY}`;
 /** The fragment shader for a full-canvas draw (the Atlas page). */
 export const canvasFragment = () => `#define PLANET_UV ((gl_FragCoord.xy/uRes)*2.0-1.0)\n${FRAG_BODY}`;
