@@ -7,8 +7,8 @@
     },
     {
       "from": "me",
-      "text": "I ride. Road on my Trek Madone on weekends, mountain whenever I can.",
-      "textEs": "Rodar. Ruta en mi Trek Madone los fines de semana y montaña cuando se puede."
+      "text": "I ride. Road bike on weekends, mountain whenever I can.",
+      "textEs": "Rodar. Ruta en bici los fines de semana y montaña cuando se puede."
     },
     {
       "from": "drone",
@@ -27,8 +27,8 @@
     },
     {
       "from": "me",
-      "text": "A homelab: a mini PC, a ZimaBoard, a NAS and a Minecraft server my friends reach over WireGuard.",
-      "textEs": "Un homelab: mini PC, ZimaBoard, un NAS y un servidor de Minecraft al que mis amigos entran por WireGuard."
+      "text": "A homelab: a mini PC, a NAS and a Minecraft server my friends reach over WireGuard.",
+      "textEs": "Un homelab: mini PC, un NAS y un servidor de Minecraft al que mis amigos entran por WireGuard."
     },
     {
       "from": "drone",
@@ -47,8 +47,8 @@
     },
     {
       "from": "me",
-      "text": "Spanish, English, German (working towards B2) and some French.",
-      "textEs": "Español, inglés, alemán (preparando el B2) y algo de francés."
+      "text": "Spanish, English, German and some French.",
+      "textEs": "Español, inglés, alemán y algo de francés."
     },
     {
       "from": "drone",
