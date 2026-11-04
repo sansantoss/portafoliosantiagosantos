@@ -1,5 +1,7 @@
 {
   "name": "Santiago Santos Bante",
+  "role": "Software engineer · AI",
+  "roleEs": "Ingeniero de software · IA",
   "shortName": "Santiago Santos",
   "monogram": "SB",
   "headlineStart": "Software, built with",
@@ -24,5 +26,7 @@
   "closingLine": "Let's build something",
   "closingEmphasis": "worth using.",
   "closingLineEs": "Construyamos algo",
-  "closingEmphasisEs": "que valga la pena usar."
+  "closingEmphasisEs": "que valga la pena usar.",
+  "quote": "",
+  "quoteEs": ""
 }

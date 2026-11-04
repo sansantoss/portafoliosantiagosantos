@@ -1,7 +1,8 @@
 export const THEME_KEY = 'sb-theme';
 
 // Runs before paint so the saved theme never flashes.
-export const themeScript = `try{var t=localStorage.getItem('${THEME_KEY}');if(t)document.documentElement.dataset.theme=t}catch(e){}`;
+// Also decides, before paint, whether the greeting intro plays (once per browser session).
+export const themeScript = `try{var t=localStorage.getItem('${THEME_KEY}');if(t)document.documentElement.dataset.theme=t}catch(e){}try{if(sessionStorage.getItem('sb-intro'))document.documentElement.classList.add('intro-seen');else sessionStorage.setItem('sb-intro','1')}catch(e){document.documentElement.classList.add('intro-seen')}`;
 
 export function toggleTheme() {
   const root = document.documentElement;

@@ -23,21 +23,66 @@
     }
   ],
   "skills": [
-    "Python",
-    "C++",
-    "Java",
-    "JavaScript",
-    "TypeScript",
-    "React",
-    "Next.js",
-    "Node.js",
-    "MySQL",
-    "PostgreSQL",
-    "Supabase",
-    "TensorFlow",
-    "Keras",
-    "OpenGL",
-    "Git"
+    {
+      "name": "Python",
+      "category": "languages"
+    },
+    {
+      "name": "C++",
+      "category": "languages"
+    },
+    {
+      "name": "Java",
+      "category": "languages"
+    },
+    {
+      "name": "JavaScript",
+      "category": "languages"
+    },
+    {
+      "name": "TypeScript",
+      "category": "languages"
+    },
+    {
+      "name": "React",
+      "category": "frontend"
+    },
+    {
+      "name": "Next.js",
+      "category": "frontend"
+    },
+    {
+      "name": "Node.js",
+      "category": "backend"
+    },
+    {
+      "name": "MySQL",
+      "category": "backend"
+    },
+    {
+      "name": "PostgreSQL",
+      "category": "backend"
+    },
+    {
+      "name": "Supabase",
+      "category": "backend"
+    },
+    {
+      "name": "TensorFlow",
+      "category": "ai"
+    },
+    {
+      "name": "Keras",
+      "category": "ai"
+    },
+    {
+      "name": "OpenGL",
+      "category": "frontend"
+    },
+    {
+      "name": "Git",
+      "category": "tools"
+    }
   ],
   "languages": [
     {

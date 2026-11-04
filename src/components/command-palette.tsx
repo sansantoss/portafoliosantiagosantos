@@ -77,6 +77,7 @@ export function CommandPalette({ lang, t, emailCopied, projects, posts, email, g
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
+    window.dispatchEvent(new Event(open ? 'palette:open' : 'palette:close'));
   }, [open]);
 
   const run = (fn: () => void) => {
@@ -92,7 +93,7 @@ export function CommandPalette({ lang, t, emailCopied, projects, posts, email, g
   return (
     <>
       <div className="cmdk-overlay" onClick={close} aria-hidden="true" />
-      <div className="cmdk-dialog" role="dialog" aria-modal="true" aria-label={t.goTo}>
+      <div className="cmdk-dialog" data-lenis-prevent role="dialog" aria-modal="true" aria-label={t.goTo}>
         <Command label={t.goTo} loop>
           <div className="cmdk-top">
             <Search size={20} />

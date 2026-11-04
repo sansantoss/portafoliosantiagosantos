@@ -24,6 +24,11 @@ export function ScrollDrone() {
 
     (async () => {
       try {
+        // Let the greeting intro play smoothly before doing the heavy 3D work.
+        if (!document.documentElement.classList.contains('intro-seen')) {
+          await new Promise((r) => setTimeout(r, 1700));
+          if (cancelled) return;
+        }
         const THREE = await import('three');
         const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
         const { MeshoptDecoder } = await import('three/examples/jsm/libs/meshopt_decoder.module.js');

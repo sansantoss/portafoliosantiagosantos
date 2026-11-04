@@ -2,6 +2,16 @@ import type { Locale } from './config';
 
 // Every piece of fixed interface text, in both languages.
 const en = {
+  intro: { words: ['Hola', 'Hello', 'Hallo', 'Bonjour'], skip: 'Skip' },
+  card: { localTime: 'Local time', available: 'Available for work', busy: 'Busy right now' },
+  categories: { all: 'All', client: 'Client work', ai: 'AI', experiments: 'Experiments', games: 'Games', academic: 'Academic' } as Record<string, string>,
+  stack: {
+    title: 'Stack', lede: 'Press the keys, or type on your keyboard.',
+    cats: { all: 'All', ai: 'AI & data', backend: 'Backend', frontend: 'Frontend', languages: 'Languages', tools: 'Tools' } as Record<string, string>,
+    sound: 'Sound', on: 'on', off: 'off',
+  },
+  progress: { label: 'Page sections', hero: 'Intro', projects: 'Projects', stack: 'Stack', ask: 'Ask', journal: 'Journal' },
+  foot: { links: 'Explore', contact: 'Contact', status: 'Status', time: 'Puebla time', top: 'Back to top' },
   meta: { role: 'Software & AI engineering' },
   nav: { projects: 'Projects', journal: 'Journal', cv: 'CV', contact: 'Contact', home: 'home', menu: 'Open command menu', skip: 'Skip to content', language: 'Language' },
   hero: { seeProjects: 'See projects', downloadCv: 'Download CV' },
@@ -35,6 +45,16 @@ const en = {
 };
 
 const es: typeof en = {
+  intro: { words: ['Hola', 'Hello', 'Hallo', 'Bonjour'], skip: 'Saltar' },
+  card: { localTime: 'Hora local', available: 'Disponible para trabajar', busy: 'Ocupado por ahora' },
+  categories: { all: 'Todos', client: 'Clientes', ai: 'IA', experiments: 'Experimentos', games: 'Juegos', academic: 'Académicos' },
+  stack: {
+    title: 'Stack', lede: 'Presiona las teclas, o escribe con tu teclado.',
+    cats: { all: 'Todo', ai: 'IA y datos', backend: 'Backend', frontend: 'Frontend', languages: 'Lenguajes', tools: 'Herramientas' },
+    sound: 'Sonido', on: 'sí', off: 'no',
+  },
+  progress: { label: 'Secciones de la página', hero: 'Inicio', projects: 'Proyectos', stack: 'Stack', ask: 'Pregunta', journal: 'Journal' },
+  foot: { links: 'Explora', contact: 'Contacto', status: 'Estatus', time: 'Hora en Puebla', top: 'Volver arriba' },
   meta: { role: 'Ingeniería de software e IA' },
   nav: { projects: 'Proyectos', journal: 'Journal', cv: 'CV', contact: 'Contacto', home: 'inicio', menu: 'Abrir menú de comandos', skip: 'Ir al contenido', language: 'Idioma' },
   hero: { seeProjects: 'Ver proyectos', downloadCv: 'Descargar CV' },

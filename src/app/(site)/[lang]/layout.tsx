@@ -11,6 +11,9 @@ import { CommandPalette, PaletteButton } from '@/components/command-palette';
 import { CopyEmail } from '@/components/copy-email';
 import { LanguageSwitch } from '@/components/language-switch';
 import { Toaster } from '@/components/toast';
+import { Intro } from '@/components/intro';
+import { Interactions } from '@/components/interactions';
+import { PueblaClock } from '@/components/clock';
 import { themeScript } from '@/components/theme';
 import { hasLocale, locales } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
@@ -62,6 +65,8 @@ export default async function SiteLayout({ children, params }: Props) {
     <html lang={lang} className={`${serif.variable} ${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
       <body>
         <Script id="theme" strategy="beforeInteractive">{themeScript}</Script>
+        <Intro words={t.intro.words} skip={t.intro.skip} />
+        <Interactions />
         <a href="#main" className="skip">{t.nav.skip}</a>
         <header className="site-header">
           <div className="wrap">
@@ -87,13 +92,34 @@ export default async function SiteLayout({ children, params }: Props) {
             <p className="big" style={{ margin: 0 }}>
               {profile.closingLine} <em>{profile.closingEmphasis}</em>
             </p>
-            <div className="foot-row">
-              <div className="foot-links">
-                {profile.github && <a href={profile.github}>GitHub</a>}
-                {profile.linkedin && <a href={profile.linkedin}>LinkedIn</a>}
-                <CopyEmail email={profile.email} copiedLabel={t.footer.emailCopied} />
+            <div className="foot-grid">
+              <div>
+                <span className="foot-label">{t.foot.links}</span>
+                <Link href={`/${lang}#projects`}>{t.nav.projects}</Link>
+                <Link href={`/${lang}#stack`}>{t.stack.title}</Link>
+                <Link href={`/${lang}/journal`}>{t.nav.journal}</Link>
+                <Link href={`/${lang}#cv`}>{t.nav.cv}</Link>
               </div>
+              <div>
+                <span className="foot-label">{t.foot.contact}</span>
+                <CopyEmail email={profile.email} copiedLabel={t.footer.emailCopied} />
+                {profile.github && <a href={profile.github}>GitHub ↗</a>}
+                {profile.linkedin && <a href={profile.linkedin}>LinkedIn ↗</a>}
+              </div>
+              <div>
+                <span className="foot-label">{t.foot.status}</span>
+                <span className="foot-status">
+                  <span className="dot" aria-hidden="true" style={profile.openToWork ? undefined : { background: 'var(--invert-muted)' }} />
+                  {profile.openToWork ? t.card.available : t.card.busy}
+                </span>
+                <span className="foot-label" style={{ marginTop: 14 }}>{t.foot.time}</span>
+                <PueblaClock lang={lang} />
+              </div>
+            </div>
+            {profile.quote && <p className="foot-quote">“{profile.quote}”</p>}
+            <div className="foot-row">
               <span className="muted">© {year} {profile.name} · {t.footer.press}</span>
+              <a href="#main" className="muted">{t.foot.top} ↑</a>
             </div>
           </div>
         </footer>

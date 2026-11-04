@@ -3,6 +3,9 @@ import { notFound } from 'next/navigation';
 import { getCv, getPosts, getProfile, getProjects, formatDate } from '@/lib/content';
 import { ProjectList } from '@/components/project-list';
 import { ScrollDrone } from '@/components/scroll-drone';
+import { StackKeyboard } from '@/components/stack-keyboard';
+import { SectionProgress } from '@/components/section-progress';
+import { PueblaClock } from '@/components/clock';
 import { hasLocale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 
@@ -11,15 +14,45 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
   if (!hasLocale(lang)) notFound();
   const t = getDictionary(lang);
   const [profile, cv, projects, posts] = await Promise.all([getProfile(lang), getCv(lang), getProjects(lang), getPosts(lang)]);
-  const featured = projects.find((p) => p.featured);
-  const rest = projects.filter((p) => p !== featured);
   const years = projects.map((p) => Number(p.year)).filter(Boolean);
 
   return (
     <>
-      <section className="wrap hero">
+      <SectionProgress
+        label={t.progress.label}
+        items={[
+          { id: 'intro', label: t.progress.hero },
+          { id: 'projects', label: t.progress.projects },
+          { id: 'stack', label: t.progress.stack },
+          { id: 'ask', label: t.progress.ask },
+          { id: 'journal', label: t.progress.journal },
+        ]}
+      />
+
+      <section id="intro" className="wrap hero">
+        <div className="idcard">
+          <span className="idcard-avatar" aria-hidden="true">
+            {profile.avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.avatar} alt="" />
+            ) : (
+              profile.monogram
+            )}
+          </span>
+          <span className="idcard-text">
+            <strong>{profile.name}</strong>
+            <span>{profile.role}</span>
+          </span>
+          <span className="idcard-meta">
+            <span className="idcard-status">
+              <span className="dot" aria-hidden="true" style={profile.openToWork ? undefined : { background: 'var(--muted)' }} />
+              {profile.openToWork ? t.card.available : t.card.busy}
+            </span>
+            <span className="idcard-time">{profile.location} · <PueblaClock lang={lang} /></span>
+          </span>
+        </div>
         <h1>
-          {profile.headlineStart} <em>{profile.headlineEmphasis}</em> {profile.headlineEnd}
+          {profile.headlineStart} <em data-glow>{profile.headlineEmphasis}</em> {profile.headlineEnd}
         </h1>
         <p>{profile.intro}</p>
         <div className="hero-actions">
@@ -52,28 +85,19 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
           {years.length > 0 && <span className="label">{Math.min(...years)} — {Math.max(...years)}</span>}
         </div>
 
-        {featured && (
-          <Link href={`/${lang}/projects/${featured.slug}`} className="featured reveal">
-            <span className="featured-main">
-              <span className="label">01 — {t.projects.featured}{featured.status ? ` · ${featured.status}` : ''}</span>
-              <span className="featured-title">{featured.title}</span>
-              <span className="featured-summary">{featured.summary}</span>
-            </span>
-            <span className="featured-side">
-              <span>{featured.stack.join(' · ')}</span>
-              <span style={{ color: 'var(--invert-ink)' }}>{t.projects.caseStudy} →</span>
-            </span>
-          </Link>
-        )}
-
         <ProjectList
           lang={lang}
-          start={featured ? 2 : 1}
-          rows={rest.map((p) => ({
-            slug: p.slug, title: p.title, summary: p.summary, stack: p.stack,
-            year: p.year, context: p.context, cover: p.cover, video: p.video,
+          labels={{ categories: t.categories, featured: t.projects.featured, caseStudy: t.projects.caseStudy }}
+          rows={projects.map((p) => ({
+            slug: p.slug, title: p.title, summary: p.summary, stack: p.stack, year: p.year, context: p.context,
+            status: p.status, category: p.category, featured: p.featured, cover: p.cover, video: p.video,
           }))}
         />
+      </section>
+
+      <section id="stack" className="wrap section" style={{ scrollMarginTop: 90 }}>
+        <div className="section-head"><h2>{t.stack.title}</h2></div>
+        <StackKeyboard skills={cv.skills} labels={t.stack} />
       </section>
 
       <section id="ask" className="wrap section" style={{ scrollMarginTop: 90 }}>
@@ -138,9 +162,6 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
                 <span className="sub">{cv.languages.join(' · ')}</span>
               </div>
             )}
-          </div>
-          <div className="tags" style={{ marginBottom: 24 }}>
-            {cv.skills.map((s) => <span className="tag" key={s}>{s}</span>)}
           </div>
           {profile.cvFile && <a href={profile.cvFile} className="link-arrow">{t.cv.download} ↗</a>}
         </div>

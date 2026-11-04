@@ -27,6 +27,13 @@ export default config({
       format: { data: 'json' },
       schema: {
         name: fields.text({ label: 'Full name' }),
+        avatar: fields.image({
+          label: 'Photo or avatar for the profile card (square). Empty = monogram.',
+          directory: 'public/images/profile',
+          publicPath: '/images/profile/',
+        }),
+        role: fields.text({ label: 'Role (profile card)' }),
+        roleEs: fields.text({ label: es('Role (profile card)') }),
         shortName: fields.text({ label: 'Short name' }),
         monogram: fields.text({ label: 'Monogram', validation: { length: { max: 3 } } }),
         headlineStart: fields.text({ label: 'Headline: before the italic word' }),
@@ -53,6 +60,8 @@ export default config({
         closingEmphasis: fields.text({ label: 'Footer line: italic part' }),
         closingLineEs: fields.text({ label: es('Footer line') }),
         closingEmphasisEs: fields.text({ label: es('Footer line: italic part') }),
+        quote: fields.text({ label: 'Footer quote (optional)' }),
+        quoteEs: fields.text({ label: es('Footer quote (optional)') }),
       },
     }),
     cv: singleton({
@@ -70,7 +79,23 @@ export default config({
           }),
           { label: 'Timeline', itemLabel: (p) => `${p.fields.period.value} — ${p.fields.title.value}` }
         ),
-        skills: fields.array(fields.text({ label: 'Skill' }), { label: 'Stack', itemLabel: (p) => p.value }),
+        skills: fields.array(
+          fields.object({
+            name: fields.text({ label: 'Skill' }),
+            category: fields.select({
+              label: 'Category',
+              options: [
+                { label: 'AI & data', value: 'ai' },
+                { label: 'Backend', value: 'backend' },
+                { label: 'Frontend', value: 'frontend' },
+                { label: 'Languages', value: 'languages' },
+                { label: 'Tools', value: 'tools' },
+              ],
+              defaultValue: 'tools',
+            }),
+          }),
+          { label: 'Stack (shown as a keyboard)', itemLabel: (p) => `${p.fields.name.value} · ${p.fields.category.value}` }
+        ),
         languages: fields.array(
           fields.object({
             en: fields.text({ label: 'In English (e.g. Spanish (native))' }),
@@ -93,6 +118,17 @@ export default config({
         titleEs: fields.text({ label: es('Title') }),
         order: fields.integer({ label: 'Order (1 = first)', defaultValue: 10 }),
         featured: fields.checkbox({ label: 'Featured (big dark card on top)', defaultValue: false }),
+        category: fields.select({
+          label: 'Category (tabs in the projects section)',
+          options: [
+            { label: 'Client work', value: 'client' },
+            { label: 'AI', value: 'ai' },
+            { label: 'Experiments', value: 'experiments' },
+            { label: 'Games', value: 'games' },
+            { label: 'Academic', value: 'academic' },
+          ],
+          defaultValue: 'experiments',
+        }),
         hidden: fields.checkbox({ label: 'Hide from the site', defaultValue: false }),
         year: fields.text({ label: 'Year' }),
         context: fields.text({ label: 'Context (e.g. Tec de Monterrey, Client work)' }),

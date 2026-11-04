@@ -17,6 +17,8 @@ export async function getProfile(lang: Locale) {
     name: p.name,
     shortName: p.shortName,
     monogram: p.monogram,
+    avatar: p.avatar,
+    role: pick(lang, p.role, p.roleEs),
     headlineStart: pick(lang, p.headlineStart, p.headlineStartEs),
     headlineEmphasis: pick(lang, p.headlineEmphasis, p.headlineEmphasisEs),
     headlineEnd: pick(lang, p.headlineEnd, p.headlineEndEs),
@@ -31,6 +33,7 @@ export async function getProfile(lang: Locale) {
     cvFile: (lang === 'es' && p.cvFileEs) || p.cvFile,
     closingLine: pick(lang, p.closingLine, p.closingLineEs),
     closingEmphasis: pick(lang, p.closingEmphasis, p.closingEmphasisEs),
+    quote: pick(lang, p.quote, p.quoteEs),
   };
 }
 
@@ -38,7 +41,7 @@ export async function getCv(lang: Locale) {
   const c = await reader.singletons.cv.readOrThrow();
   return {
     entries: c.entries.map((e) => ({ period: e.period, title: pick(lang, e.title, e.titleEs), place: pick(lang, e.place, e.placeEs) })),
-    skills: [...c.skills],
+    skills: c.skills.map((k) => ({ name: k.name, category: k.category })),
     languages: c.languages.map((l) => pick(lang, l.en, l.es)),
   };
 }
@@ -51,6 +54,7 @@ function localizeProject(lang: Locale, slug: string, e: RawProject) {
     title: pick(lang, e.title, e.titleEs),
     order: e.order ?? 99,
     featured: e.featured,
+    category: e.category,
     hidden: e.hidden,
     year: e.year,
     context: pick(lang, e.context, e.contextEs),
