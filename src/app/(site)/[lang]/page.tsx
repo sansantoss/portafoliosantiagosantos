@@ -1,10 +1,16 @@
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { getCv, getPosts, getProfile, getProjects, formatDate } from '@/lib/content';
 import { ProjectList } from '@/components/project-list';
 import { ScrollDrone } from '@/components/scroll-drone';
+import { hasLocale } from '@/i18n/config';
+import { getDictionary } from '@/i18n/dictionaries';
 
-export default async function Home() {
-  const [profile, cv, projects, posts] = await Promise.all([getProfile(), getCv(), getProjects(), getPosts()]);
+export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  if (!hasLocale(lang)) notFound();
+  const t = getDictionary(lang);
+  const [profile, cv, projects, posts] = await Promise.all([getProfile(lang), getCv(lang), getProjects(lang), getPosts(lang)]);
   const featured = projects.find((p) => p.featured);
   const rest = projects.filter((p) => p !== featured);
   const years = projects.map((p) => Number(p.year)).filter(Boolean);
@@ -17,8 +23,8 @@ export default async function Home() {
         </h1>
         <p>{profile.intro}</p>
         <div className="hero-actions">
-          <Link href="#projects" className="btn btn-solid">See projects</Link>
-          {profile.cvFile && <a href={profile.cvFile} className="btn">Download CV</a>}
+          <Link href="#projects" className="btn btn-solid">{t.hero.seeProjects}</Link>
+          {profile.cvFile && <a href={profile.cvFile} className="btn">{t.hero.downloadCv}</a>}
         </div>
         <div className="drone-dock hero-dock" data-dock="start" aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -28,13 +34,13 @@ export default async function Home() {
 
       <div className="wrap">
         <dl className="titleblock" style={{ margin: 0, marginBottom: 'clamp(72px, 10vw, 112px)' }}>
-          <div><dt className="label">Based in</dt><dd className="val" style={{ margin: 0 }}>{profile.location}</dd></div>
-          <div><dt className="label">Focus</dt><dd className="val" style={{ margin: 0 }}>{profile.focus}</dd></div>
-          <div><dt className="label">Education</dt><dd className="val" style={{ margin: 0 }}>{profile.education}</dd></div>
+          <div><dt className="label">{t.facts.basedIn}</dt><dd className="val" style={{ margin: 0 }}>{profile.location}</dd></div>
+          <div><dt className="label">{t.facts.focus}</dt><dd className="val" style={{ margin: 0 }}>{profile.focus}</dd></div>
+          <div><dt className="label">{t.facts.education}</dt><dd className="val" style={{ margin: 0 }}>{profile.education}</dd></div>
           <div>
-            <dt className="label">Status</dt>
+            <dt className="label">{t.facts.status}</dt>
             <dd className="val" style={{ margin: 0 }}>
-              {profile.openToWork ? (<><span className="dot" aria-hidden="true" />Open to opportunities</>) : 'Not looking right now'}
+              {profile.openToWork ? (<><span className="dot" aria-hidden="true" />{t.facts.open}</>) : t.facts.closed}
             </dd>
           </div>
         </dl>
@@ -42,29 +48,30 @@ export default async function Home() {
 
       <section id="projects" className="wrap section" style={{ scrollMarginTop: 90 }}>
         <div className="section-head">
-          <h2>Projects</h2>
+          <h2>{t.projects.title}</h2>
           {years.length > 0 && <span className="label">{Math.min(...years)} — {Math.max(...years)}</span>}
         </div>
 
         {featured && (
-          <Link href={`/projects/${featured.slug}`} className="featured reveal">
+          <Link href={`/${lang}/projects/${featured.slug}`} className="featured reveal">
             <span className="featured-main">
-              <span className="label">01 — Featured{featured.status ? ` · ${featured.status}` : ''}</span>
+              <span className="label">01 — {t.projects.featured}{featured.status ? ` · ${featured.status}` : ''}</span>
               <span className="featured-title">{featured.title}</span>
               <span className="featured-summary">{featured.summary}</span>
             </span>
             <span className="featured-side">
               <span>{featured.stack.join(' · ')}</span>
-              <span style={{ color: 'var(--invert-ink)' }}>Read the case study →</span>
+              <span style={{ color: 'var(--invert-ink)' }}>{t.projects.caseStudy} →</span>
             </span>
           </Link>
         )}
 
         <ProjectList
+          lang={lang}
           start={featured ? 2 : 1}
           rows={rest.map((p) => ({
             slug: p.slug, title: p.title, summary: p.summary, stack: p.stack,
-            year: p.year, context: p.context, cover: p.cover,
+            year: p.year, context: p.context, cover: p.cover, video: p.video,
           }))}
         />
       </section>
@@ -72,22 +79,19 @@ export default async function Home() {
       <section id="ask" className="wrap section" style={{ scrollMarginTop: 90 }}>
         <div className="ask">
           <div className="ask-intro">
-            <span className="label">Ask my CV</span>
-            <h2 className="h2">Ask anything <em className="em">about my work.</em></h2>
-            <p>
-              I&apos;m building a small retrieval system over my CV, projects and journal. Every answer will cite
-              where it came from, and if something isn&apos;t in my documents it will say so instead of guessing.
-            </p>
+            <span className="label">{t.ask.label}</span>
+            <h2 className="h2">{t.ask.titleStart} <em className="em">{t.ask.titleEm}</em></h2>
+            <p>{t.ask.body}</p>
           </div>
           <form className="ask-box" aria-describedby="ask-status">
-            <label htmlFor="ask-q" className="label">Your question</label>
+            <label htmlFor="ask-q" className="label">{t.ask.question}</label>
             <div className="ask-field">
-              <input id="ask-q" placeholder="What AI work has he done?" disabled />
-              <button type="submit" disabled>Ask →</button>
+              <input id="ask-q" placeholder={t.ask.placeholder} disabled />
+              <button type="submit" disabled>{t.ask.button} →</button>
             </div>
             <span id="ask-status" className="badge label">
               <span className="dot" style={{ background: 'var(--accent)' }} aria-hidden="true" />
-              In development — follow the build in the journal
+              {t.ask.status}
             </span>
           </form>
           <div className="drone-dock ask-dock" data-dock="end" aria-hidden="true">
@@ -99,25 +103,28 @@ export default async function Home() {
 
       <section className="wrap section split">
         <div id="journal" className="journal" style={{ scrollMarginTop: 90 }}>
-          <div className="section-head"><h2>Journal</h2></div>
+          <div className="section-head"><h2>{t.journal.title}</h2></div>
           {posts.length ? (
             <div className="entries">
               {posts.slice(0, 3).map((p) => (
-                <Link key={p.slug} href={`/journal/${p.slug}`} className="entry reveal">
-                  <span className="label">{formatDate(p.date)} — {p.kind}</span>
-                  <span className="entry-title">{p.title}</span>
-                  {p.summary && <span className="entry-sum">{p.summary}</span>}
+                <Link key={p.slug} href={`/${lang}/journal/${p.slug}`} className="entry reveal" hrefLang={p.shownIn}>
+                  <span className="label">
+                    {formatDate(p.date, lang)} — {t.journal.kinds[p.kind] ?? p.kind}
+                    {p.shownIn !== lang && <span className="lang-chip">{p.shownIn.toUpperCase()}</span>}
+                  </span>
+                  <span className="entry-title" lang={p.shownIn}>{p.title}</span>
+                  {p.summary && <span className="entry-sum" lang={p.shownIn}>{p.summary}</span>}
                 </Link>
               ))}
-              <Link href="/journal" className="link-arrow">All entries →</Link>
+              <Link href={`/${lang}/journal`} className="link-arrow">{t.journal.all} →</Link>
             </div>
           ) : (
-            <p className="empty">First entries are on the way: write-ups of how each project was built.</p>
+            <p className="empty">{t.journal.empty}</p>
           )}
         </div>
 
         <div id="cv" className="cvcol" style={{ scrollMarginTop: 90 }}>
-          <div className="section-head"><h2>CV</h2></div>
+          <div className="section-head"><h2>{t.cv.title}</h2></div>
           <div className="timeline">
             {cv.entries.map((e, i) => (
               <div className="trow" key={i}>
@@ -127,7 +134,7 @@ export default async function Home() {
             ))}
             {cv.languages.length > 0 && (
               <div className="trow">
-                <span className="label">Lang</span>
+                <span className="label">{t.cv.lang}</span>
                 <span className="sub">{cv.languages.join(' · ')}</span>
               </div>
             )}
@@ -135,7 +142,7 @@ export default async function Home() {
           <div className="tags" style={{ marginBottom: 24 }}>
             {cv.skills.map((s) => <span className="tag" key={s}>{s}</span>)}
           </div>
-          {profile.cvFile && <a href={profile.cvFile} className="link-arrow">Download full CV (PDF) ↗</a>}
+          {profile.cvFile && <a href={profile.cvFile} className="link-arrow">{t.cv.download} ↗</a>}
         </div>
       </section>
 

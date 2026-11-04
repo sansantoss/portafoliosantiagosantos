@@ -3,17 +3,23 @@
     {
       "period": "2024–25",
       "title": "Exchange, Industrial Mechatronics",
-      "place": "FH Joanneum, Austria"
+      "titleEs": "Intercambio, Mecatrónica Industrial",
+      "place": "FH Joanneum, Austria",
+      "placeEs": "FH Joanneum, Austria"
     },
     {
       "period": "2021–25",
       "title": "B.S. Computer Science & Technology",
-      "place": "Tec de Monterrey · GPA 94.58/100"
+      "titleEs": "Ingeniería en Tecnologías Computacionales",
+      "place": "Tec de Monterrey · GPA 94.58/100",
+      "placeEs": "Tec de Monterrey · Promedio 94.58/100"
     },
     {
       "period": "2024",
       "title": "President & cofounder, CYBERNATION",
-      "place": "Student group, Tec Puebla"
+      "titleEs": "Presidente y cofundador, CYBERNATION",
+      "place": "Student group, Tec Puebla",
+      "placeEs": "Grupo estudiantil, Tec Puebla"
     }
   ],
   "skills": [
@@ -34,9 +40,21 @@
     "Git"
   ],
   "languages": [
-    "Spanish (native)",
-    "English (advanced)",
-    "German (intermediate)",
-    "French (basic)"
+    {
+      "en": "Spanish (native)",
+      "es": "Español (nativo)"
+    },
+    {
+      "en": "English (advanced)",
+      "es": "Inglés (avanzado)"
+    },
+    {
+      "en": "German (intermediate)",
+      "es": "Alemán (intermedio)"
+    },
+    {
+      "en": "French (basic)",
+      "es": "Francés (básico)"
+    }
   ]
 }

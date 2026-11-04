@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { droneLook } from './drone-events';
+import type { Locale } from '@/i18n/config';
 
 type Row = {
   slug: string;
@@ -11,19 +12,24 @@ type Row = {
   year: string;
   context: string;
   cover: string | null;
+  video: string | null;
 };
 
-// Editorial list; on devices with a mouse, the project's preview image follows the cursor.
-export function ProjectList({ rows, start }: { rows: Row[]; start: number }) {
-  const [active, setActive] = useState<string | null>(null);
-  const img = useRef<HTMLImageElement>(null);
+type Preview = { cover: string | null; video: string | null } | null;
+
+// Editorial list; on devices with a mouse, the project's preview (video if it has one, else its cover)
+// follows the cursor.
+export function ProjectList({ rows, start, lang }: { rows: Row[]; start: number; lang: Locale }) {
+  const [active, setActive] = useState<Preview>(null);
+  const box = useRef<HTMLDivElement>(null);
 
   const move = (e: React.MouseEvent) => {
-    if (img.current) {
-      img.current.style.left = `${e.clientX + 200}px`;
-      img.current.style.top = `${e.clientY}px`;
+    if (box.current) {
+      box.current.style.left = `${e.clientX + 200}px`;
+      box.current.style.top = `${e.clientY}px`;
     }
   };
+  const has = active && (active.video || active.cover);
 
   return (
     <>
@@ -38,10 +44,10 @@ export function ProjectList({ rows, start }: { rows: Row[]; start: number }) {
         {rows.map((p, i) => (
           <li key={p.slug} className="reveal">
             <Link
-              href={`/projects/${p.slug}`}
+              href={`/${lang}/projects/${p.slug}`}
               className="prow"
               onMouseEnter={(e) => {
-                setActive(p.cover);
+                setActive({ cover: p.cover, video: p.video });
                 const r = e.currentTarget.getBoundingClientRect();
                 droneLook({ x: r.left + r.width * 0.35, y: r.top + r.height / 2 });
               }}
@@ -61,8 +67,14 @@ export function ProjectList({ rows, start }: { rows: Row[]; start: number }) {
           </li>
         ))}
       </ul>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img ref={img} src={active ?? undefined} alt="" aria-hidden="true" className={`hover-preview${active ? ' on' : ''}`} />
+      <div ref={box} aria-hidden="true" className={`hover-preview${has ? ' on' : ''}`}>
+        {active?.video ? (
+          <video key={active.video} src={active.video} poster={active.cover ?? undefined} autoPlay muted loop playsInline />
+        ) : active?.cover ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={active.cover} alt="" />
+        ) : null}
+      </div>
     </>
   );
 }

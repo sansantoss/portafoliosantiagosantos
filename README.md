@@ -35,6 +35,7 @@ An editorial portfolio: the look of an architecture studio, the function of a CV
 - **Git-backed CMS**: [Keystatic](https://keystatic.com) edits Markdown and JSON in `content/`. Every save in production is a commit, and Vercel redeploys on its own.
 - **⌘K command palette**: built with [cmdk](https://cmdk.paco.me). It searches projects and posts and runs actions. Opens with `⌘K`, `Ctrl+K` or `/`.
 - **Scroll-driven reveals in pure CSS**: `animation-timeline: view()`, no JavaScript, turned off under `prefers-reduced-motion`.
+- **English and Spanish**: `/en` and `/es` with an EN/ES switch, browser-language detection and `hreflang` tags.
 - **Light and dark themes**: follows the system, can be switched from the palette, and is remembered without a flash on load.
 - **Static and fast**: every page is pre-rendered and the fonts are self-hosted.
 - **A drone that rides along**: on wide screens a 3D drone (three.js) starts in the hero, flies down the right margin as you scroll and parks beside *Ask my CV*. It fades out instead of covering text, loads only on desktop and respects `prefers-reduced-motion`. It also guards the 404.
@@ -70,16 +71,26 @@ npm run dev
 | --- | --- | --- |
 | Name, headline, intro, links, CV PDF | Settings → Profile | `content/profile.json` |
 | CV timeline, stack, languages | Settings → CV | `content/cv.json` |
-| Projects | Content → Projects | `content/projects/*.mdoc` |
+| Projects | Content → Projects | `content/projects/*.mdoc` (Spanish write-up in `content/projects/<slug>/contentEs.mdoc`) |
 | Journal posts | Content → Journal | `content/posts/*.mdoc` |
 
-Project fields worth knowing:
+### Two languages
 
-- **Order** sets the position in the list.
-- **Featured** shows the project as the large dark card. Mark only one.
-- **Hidden** removes it from the site without deleting it.
-- **Preview image** follows the cursor in the list and appears at the top of the project page. Use 16:9 at about 1600 px wide.
-- **Preview video** takes a short, muted `.mp4` and replaces the image on the project page.
+The site lives at `/en/...` and `/es/...`. A first-time visitor is sent to the language of their browser; after they use the EN/ES switch, their choice is remembered.
+
+- **Fixed interface text** (menu, buttons, labels) is in `src/i18n/dictionaries.ts`.
+- **Profile, CV and projects**: every text field has an English version and a Spanish one marked **(ES)**. An empty (ES) field falls back to English.
+- **Journal**: write each post in one language and set **Language this post was written in**. The optional **Translation** fields hold the other language. Without a translation, the post appears in its original language with a short note.
+
+### Project fields worth knowing
+
+- **Order** sets the position in the list. **Featured** shows it as the large dark card (mark only one). **Hidden** removes it without deleting it.
+- **Live site URL** adds a "Visit site" button; **Interactive demo URL** adds "Try it live".
+- **Cover image** follows the cursor in the list and tops the project page. 16:10, about 1600 px wide.
+- **Preview video**: a muted `.mp4` of 5–12 s, under ~8 MB. It plays on hover in the list and on the project page.
+- **Gallery**: screenshots shown under the write-up, each with an optional caption.
+
+Which media to use: public sites get the video and a "Visit site" link; interactive demos get "Try it live" plus a short video; private client work gets screenshots with demo data.
 
 New posts start as **Draft** and only go live when you uncheck it.
 

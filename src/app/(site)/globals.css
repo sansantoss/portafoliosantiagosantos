@@ -201,11 +201,12 @@ img { max-width: 100%; display: block; }
 .prow-meta { flex: 1 1 200px; font-family: var(--font-geist-mono), monospace; font-size: 13px; color: var(--muted); line-height: 1.7; }
 
 .hover-preview {
-  position: fixed; left: 0; top: 0; width: 340px; aspect-ratio: 4 / 3; pointer-events: none; z-index: 30;
-  object-fit: cover; border: 1px solid var(--line-strong); background: var(--surface);
+  position: fixed; left: 0; top: 0; width: 360px; aspect-ratio: 16 / 10; pointer-events: none; z-index: 30;
+  overflow: hidden; border: 1px solid var(--line-strong); background: var(--surface);
   opacity: 0; transform: translate(-50%, -50%) scale(0.92); transition: opacity 0.2s, transform 0.25s;
 }
 .hover-preview.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.hover-preview img, .hover-preview video { width: 100%; height: 100%; object-fit: cover; display: block; }
 @media (hover: none) { .hover-preview { display: none; } }
 
 /* ---------- ask my cv ---------- */
@@ -353,3 +354,19 @@ img { max-width: 100%; display: block; }
   .hero-dock { width: 340px; height: 340px; bottom: 16px; right: calc(var(--gutter) - 40px); }
   .ask-dock { flex-basis: 260px; height: 260px; }
 }
+
+/* ---------- language ---------- */
+.lang-switch { display: inline-flex; align-items: center; border: 1px solid var(--line); font-family: var(--font-geist-mono), monospace; font-size: 12px; }
+.lang-switch > * { padding: 0 9px; min-height: 40px; display: inline-flex; align-items: center; text-decoration: none; color: var(--ink-2); }
+.lang-switch a:hover { color: var(--ink); background: var(--surface); }
+.lang-switch .on { background: var(--ink); color: var(--bg); }
+.lang-chip { margin-left: 10px; border: 1px solid var(--line); padding: 1px 6px; font-size: 10px; letter-spacing: 0.08em; }
+.lang-note { font-size: 14px; color: var(--ink-2); border-left: 2px solid var(--accent); padding-left: 12px; margin: 0 0 24px; }
+
+/* ---------- project gallery ---------- */
+.gallery { margin-top: 72px; border-top: 1px solid var(--line-strong); padding-top: 24px; }
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+.gallery-item { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.gallery-item img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border: 1px solid var(--line); transition: transform 0.3s; }
+.gallery-item a:hover img { transform: scale(1.01); }
+.gallery-item figcaption { font-size: 14px; color: var(--ink-2); }

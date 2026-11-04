@@ -1,0 +1,14 @@
+Mi primer proyecto con un cliente real. El grupo tiene varios restaurantes y una panadería en distintas ciudades, y cada uno llevaba sus números en su propio juego de archivos de Excel.
+
+## Qué hace
+
+- Corte de caja por turno que cruza efectivo, terminales de tarjeta y transferencias.
+- Captura de gastos por categoría, con fondos fijos y anticipos que se comprueban después.
+- Un estado de resultados calculado automáticamente, por negocio o consolidado entre los que elijas.
+- Roles para dueños, contador y personal en sitio, con bitácora de cada cambio.
+
+## Cómo está construido
+
+Next.js en Vercel con Supabase. Cada tabla está separada por organización y protegida con Row Level Security de Postgres, así que cada usuario solo ve los negocios que tiene asignados.
+
+*El código y los datos del cliente son privados.*

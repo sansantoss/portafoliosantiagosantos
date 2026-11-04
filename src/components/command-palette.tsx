@@ -1,14 +1,19 @@
 'use client';
 import { Command } from 'cmdk';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Chat, Copy, Doc, Download, External, Folder, Search, Sun, Arrow } from './icons';
+import { Chat, Copy, Doc, Download, External, Folder, Globe, Search, Sun, Arrow } from './icons';
 import { copyText, showToast } from './toast';
 import { toggleTheme } from './theme';
 import { droneCelebrate, droneLook } from './drone-events';
+import { otherLocale, rememberLocale, switchLocalePath, type Locale } from '@/i18n/config';
+import type { Dictionary } from '@/i18n/dictionaries';
 
 type Item = { slug: string; title: string; hint?: string };
 type Props = {
+  lang: Locale;
+  t: Dictionary['palette'];
+  emailCopied: string;
   projects: Item[];
   posts: Item[];
   email: string;
@@ -21,15 +26,16 @@ export function openPalette() {
   window.dispatchEvent(new Event('open-palette'));
 }
 
-export function PaletteButton() {
+export function PaletteButton({ label }: { label: string }) {
   return (
-    <button type="button" className="kbd-btn" onClick={openPalette} aria-label="Open command menu">
+    <button type="button" className="kbd-btn" onClick={openPalette} aria-label={label}>
       ⌘K
     </button>
   );
 }
 
-export function CommandPalette({ projects, posts, email, github, linkedin, cvFile }: Props) {
+export function CommandPalette({ lang, t, emailCopied, projects, posts, email, github, linkedin, cvFile }: Props) {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const router = useRouter();
@@ -86,44 +92,44 @@ export function CommandPalette({ projects, posts, email, github, linkedin, cvFil
   return (
     <>
       <div className="cmdk-overlay" onClick={close} aria-hidden="true" />
-      <div className="cmdk-dialog" role="dialog" aria-modal="true" aria-label="Command menu">
-        <Command label="Command menu" loop>
+      <div className="cmdk-dialog" role="dialog" aria-modal="true" aria-label={t.goTo}>
+        <Command label={t.goTo} loop>
           <div className="cmdk-top">
             <Search size={20} />
             <Command.Input
               autoFocus
               value={query}
               onValueChange={setQuery}
-              placeholder="Search projects, posts, actions…"
-              aria-label="Search"
+              placeholder={t.placeholder}
+              aria-label={t.placeholder}
             />
             <span className="esc">ESC</span>
           </div>
           <Command.List>
-            <Command.Empty>Nothing found. Try “resnet” or “email”.</Command.Empty>
+            <Command.Empty>{t.empty}</Command.Empty>
 
-            <Command.Group heading="Ask my CV">
+            <Command.Group heading={t.ask}>
               <Command.Item
                 value={`ask ${query}`}
-                keywords={['ask', 'question', 'cv', 'ai']}
-                onSelect={() => go('/#ask')}
+                keywords={['ask', 'question', 'cv', 'ai', 'preguntar', 'pregunta']}
+                onSelect={() => go(`/${lang}#ask`)}
               >
                 <Chat />
-                <span className="grow">{query ? `Ask: “${query}”` : 'Ask my CV a question'}</span>
-                <span className="hint">soon</span>
+                <span className="grow">{query ? `${t.askPrefix}: “${query}”` : t.askAction}</span>
+                <span className="hint">{t.soon}</span>
               </Command.Item>
             </Command.Group>
 
-            <Command.Group heading="Go to">
-              <Command.Item onSelect={() => go('/')}><Arrow /><span className="grow">Home</span></Command.Item>
-              <Command.Item onSelect={() => go('/#projects')}><Arrow /><span className="grow">Projects</span></Command.Item>
-              <Command.Item onSelect={() => go('/journal')}><Arrow /><span className="grow">Journal</span></Command.Item>
-              <Command.Item onSelect={() => go('/#cv')}><Arrow /><span className="grow">CV</span></Command.Item>
+            <Command.Group heading={t.goTo}>
+              <Command.Item onSelect={() => go(`/${lang}`)}><Arrow /><span className="grow">{t.home}</span></Command.Item>
+              <Command.Item onSelect={() => go(`/${lang}#projects`)}><Arrow /><span className="grow">{t.projects}</span></Command.Item>
+              <Command.Item onSelect={() => go(`/${lang}/journal`)}><Arrow /><span className="grow">{t.journal}</span></Command.Item>
+              <Command.Item onSelect={() => go(`/${lang}#cv`)}><Arrow /><span className="grow">{t.cv}</span></Command.Item>
             </Command.Group>
 
-            <Command.Group heading="Projects">
+            <Command.Group heading={t.projects}>
               {projects.map((p) => (
-                <Command.Item key={p.slug} value={`project ${p.title}`} onSelect={() => go(`/projects/${p.slug}`)}>
+                <Command.Item key={p.slug} value={`project ${p.title}`} onSelect={() => go(`/${lang}/projects/${p.slug}`)}>
                   <Folder />
                   <span className="grow">{p.title}</span>
                   {p.hint && <span className="hint">{p.hint}</span>}
@@ -132,9 +138,9 @@ export function CommandPalette({ projects, posts, email, github, linkedin, cvFil
             </Command.Group>
 
             {posts.length > 0 && (
-              <Command.Group heading="Journal">
+              <Command.Group heading={t.journal}>
                 {posts.map((p) => (
-                  <Command.Item key={p.slug} value={`post ${p.title}`} onSelect={() => go(`/journal/${p.slug}`)}>
+                  <Command.Item key={p.slug} value={`post ${p.title}`} onSelect={() => go(`/${lang}/journal/${p.slug}`)}>
                     <Doc />
                     <span className="grow">{p.title}</span>
                     {p.hint && <span className="hint">{p.hint}</span>}
@@ -143,46 +149,57 @@ export function CommandPalette({ projects, posts, email, github, linkedin, cvFil
               </Command.Group>
             )}
 
-            <Command.Group heading="Actions">
+            <Command.Group heading={t.actions}>
               <Command.Item keywords={['mail', 'contact']} onSelect={() => run(() => {
-                copyText(email, 'Email copied');
+                copyText(email, emailCopied);
                 droneCelebrate();
               })}>
                 <Copy />
-                <span className="grow">Copy email</span>
+                <span className="grow">{t.copyEmail}</span>
                 <span className="hint">{email}</span>
               </Command.Item>
               {cvFile && (
                 <Command.Item keywords={['resume', 'pdf']} onSelect={() => ext(cvFile)}>
                   <Download />
-                  <span className="grow">Download CV (PDF)</span>
+                  <span className="grow">{t.downloadCv}</span>
                 </Command.Item>
               )}
               {github && (
                 <Command.Item keywords={['code', 'repo']} onSelect={() => ext(github)}>
                   <External />
-                  <span className="grow">Open GitHub</span>
+                  <span className="grow">{t.github}</span>
                 </Command.Item>
               )}
               {linkedin && (
                 <Command.Item onSelect={() => ext(linkedin)}>
                   <External />
-                  <span className="grow">Open LinkedIn</span>
+                  <span className="grow">{t.linkedin}</span>
                 </Command.Item>
               )}
               <Command.Item
                 keywords={['dark', 'light', 'mode', 'theme']}
-                onSelect={() => run(() => showToast(`${toggleTheme() === 'dark' ? 'Dark' : 'Light'} theme`))}
+                onSelect={() => run(() => showToast(toggleTheme() === 'dark' ? t.dark : t.light))}
               >
                 <Sun />
-                <span className="grow">Switch theme</span>
+                <span className="grow">{t.theme}</span>
+              </Command.Item>
+              <Command.Item
+                keywords={['language', 'idioma', 'english', 'español', 'spanish', 'ingles']}
+                onSelect={() => run(() => {
+                  const to = otherLocale(lang);
+                  rememberLocale(to);
+                  router.push(switchLocalePath(pathname, to));
+                })}
+              >
+                <Globe />
+                <span className="grow">{t.switchLang}</span>
               </Command.Item>
             </Command.Group>
           </Command.List>
           <div className="cmdk-foot">
-            <span>↑↓ navigate</span>
-            <span>↵ open</span>
-            <span>esc close</span>
+            <span>↑↓ {t.navigate}</span>
+            <span>↵ {t.open}</span>
+            <span>esc {t.close}</span>
           </div>
         </Command>
       </div>
