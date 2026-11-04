@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { achieve } from './achievements';
 
 type Skill = { name: string; category: string };
 type Labels = { lede: string; cats: Record<string, string>; sound: string; on: string; off: string };
@@ -46,8 +47,10 @@ export function StackKeyboard({ skills, labels }: { skills: Skill[]; labels: Lab
 
   const cats = ['all', ...ORDER.filter((c) => skills.some((s) => s.category === c))];
 
+  const presses = useRef(0);
   const press = (name: string) => {
     setDown(name);
+    if (++presses.current >= 10) achieve('typist');
     if (sound) click.current();
     setTimeout(() => setDown((d) => (d === name ? null : d)), 140);
   };

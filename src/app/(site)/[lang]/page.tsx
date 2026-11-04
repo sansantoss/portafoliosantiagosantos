@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getCv, getPosts, getProfile, getProjects, formatDate } from '@/lib/content';
+import { getChat, getCv, getGraph, getPosts, getProfile, getProjects, formatDate } from '@/lib/content';
+import { HeroHeadline } from '@/components/hero-headline';
+import { KnowledgeGraph } from '@/components/knowledge-graph';
+import { HobbyChat } from '@/components/hobby-chat';
 import { ProjectList } from '@/components/project-list';
 import { ScrollDrone } from '@/components/scroll-drone';
 import { StackKeyboard } from '@/components/stack-keyboard';
@@ -13,7 +16,9 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   const t = getDictionary(lang);
-  const [profile, cv, projects, posts] = await Promise.all([getProfile(lang), getCv(lang), getProjects(lang), getPosts(lang)]);
+  const [profile, cv, projects, posts, graph, chat] = await Promise.all([
+    getProfile(lang), getCv(lang), getProjects(lang), getPosts(lang), getGraph(lang), getChat(lang),
+  ]);
   const years = projects.map((p) => Number(p.year)).filter(Boolean);
 
   return (
@@ -24,7 +29,9 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
           { id: 'intro', label: t.progress.hero },
           { id: 'projects', label: t.progress.projects },
           { id: 'stack', label: t.progress.stack },
+          { id: 'graph', label: t.progress.graph },
           { id: 'ask', label: t.progress.ask },
+          ...(chat.length ? [{ id: 'off', label: t.progress.more }] : []),
           { id: 'journal', label: t.progress.journal },
         ]}
       />
@@ -51,9 +58,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
             <span className="idcard-time">{profile.location} · <PueblaClock lang={lang} /></span>
           </span>
         </div>
-        <h1>
-          {profile.headlineStart} <em data-glow>{profile.headlineEmphasis}</em> {profile.headlineEnd}
-        </h1>
+        <HeroHeadline start={profile.headlineStart} em={profile.headlineEmphasis} end={profile.headlineEnd} labels={t.tokens} />
         <p>{profile.intro}</p>
         <div className="hero-actions">
           <Link href="#projects" className="btn btn-solid">{t.hero.seeProjects}</Link>
@@ -100,6 +105,15 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
         <StackKeyboard skills={cv.skills} labels={t.stack} />
       </section>
 
+      <section id="graph" className="wrap section" style={{ scrollMarginTop: 90 }}>
+        <div className="section-head">
+          <h2>{t.graph.title}</h2>
+          <span className="label">{graph.nodes.length} · {graph.links.length}</span>
+        </div>
+        <p className="section-lede">{t.graph.lede}</p>
+        <KnowledgeGraph nodes={graph.nodes} links={graph.links} labels={t.graph} />
+      </section>
+
       <section id="ask" className="wrap section" style={{ scrollMarginTop: 90 }}>
         <div className="ask">
           <div className="ask-intro">
@@ -125,6 +139,16 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
         </div>
       </section>
 
+      {chat.length > 0 && (
+        <section id="off" className="wrap section off" style={{ scrollMarginTop: 90 }}>
+          <div className="off-intro">
+            <h2 className="h2">{t.chat.title}</h2>
+            <p>{t.chat.lede}</p>
+          </div>
+          <HobbyChat messages={chat} droneName={t.chat.drone} meName={t.chat.me} />
+        </section>
+      )}
+
       <section className="wrap section split">
         <div id="journal" className="journal" style={{ scrollMarginTop: 90 }}>
           <div className="section-head"><h2>{t.journal.title}</h2></div>
@@ -133,7 +157,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
               {posts.slice(0, 3).map((p) => (
                 <Link key={p.slug} href={`/${lang}/journal/${p.slug}`} className="entry reveal" hrefLang={p.shownIn}>
                   <span className="label">
-                    {formatDate(p.date, lang)} — {t.journal.kinds[p.kind] ?? p.kind}
+                    {formatDate(p.date, lang)} — {t.journal.kinds[p.kind] ?? p.kind} · {p.minutes} {t.journal.min}
                     {p.shownIn !== lang && <span className="lang-chip">{p.shownIn.toUpperCase()}</span>}
                   </span>
                   <span className="entry-title" lang={p.shownIn}>{p.title}</span>

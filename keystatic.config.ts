@@ -17,7 +17,7 @@ export default config({
     brand: { name: 'sansantos.com' },
     navigation: {
       Content: ['projects', 'posts'],
-      Settings: ['profile', 'cv'],
+      Settings: ['profile', 'cv', 'chat', 'setup'],
     },
   },
   singletons: {
@@ -102,6 +102,44 @@ export default config({
             es: fields.text({ label: 'En español (ej. Español (nativo))' }),
           }),
           { label: 'Languages', itemLabel: (p) => p.fields.en.value }
+        ),
+      },
+    }),
+    chat: singleton({
+      label: 'Hobbies chat (with the drone)',
+      path: 'content/chat',
+      format: { data: 'json' },
+      schema: {
+        messages: fields.array(
+          fields.object({
+            from: fields.select({ label: 'Who speaks', options: [{ label: 'Drone (asks)', value: 'drone' }, { label: 'Me', value: 'me' }], defaultValue: 'me' }),
+            text: fields.text({ label: 'Message', multiline: true }),
+            textEs: fields.text({ label: es('Message'), multiline: true }),
+          }),
+          { label: 'Messages', itemLabel: (p) => `${p.fields.from.value === 'drone' ? '🤖' : '🙂'} ${p.fields.text.value}` }
+        ),
+      },
+    }),
+    setup: singleton({
+      label: 'Setup / Uses page',
+      path: 'content/setup',
+      format: { data: 'json' },
+      schema: {
+        groups: fields.array(
+          fields.object({
+            title: fields.text({ label: 'Group (e.g. Desk, Software, Homelab)' }),
+            titleEs: fields.text({ label: es('Group') }),
+            items: fields.array(
+              fields.object({
+                name: fields.text({ label: 'Name' }),
+                note: fields.text({ label: 'Why I use it (optional)' }),
+                noteEs: fields.text({ label: es('Why I use it') }),
+                url: fields.url({ label: 'Link (optional)' }),
+              }),
+              { label: 'Items', itemLabel: (p) => p.fields.name.value }
+            ),
+          }),
+          { label: 'Groups', itemLabel: (p) => p.fields.title.value }
         ),
       },
     }),
@@ -191,6 +229,7 @@ export default config({
         }),
         draft: fields.checkbox({ label: 'Draft (not published)', defaultValue: true }),
         summary: fields.text({ label: 'Summary (also good as your LinkedIn post intro)', multiline: true }),
+        tags: fields.array(fields.text({ label: 'Tag' }), { label: 'Tags', itemLabel: (p) => p.value }),
         content: fields.markdoc({ label: 'Content' }),
         translationTitle: fields.text({ label: 'Translation: title (optional, in the other language)' }),
         translationSummary: fields.text({ label: 'Translation: summary', multiline: true }),

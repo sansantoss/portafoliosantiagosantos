@@ -100,6 +100,7 @@ function localizePost(lang: Locale, slug: string, e: RawPost) {
     slug,
     date: e.date ?? '',
     kind: e.kind,
+    tags: [...(e.tags ?? [])],
     original,
     shownIn: (translated || lang === original ? lang : original) as Locale,
     title: translated ? e.translationTitle : e.title,
@@ -110,14 +111,29 @@ function localizePost(lang: Locale, slug: string, e: RawPost) {
 
 export async function getPosts(lang: Locale) {
   const all = await reader.collections.posts.all();
-  return all
-    .filter((p) => !p.entry.draft)
-    .map(({ slug, entry }) => {
-      const { body: _body, ...rest } = localizePost(lang, slug, entry);
-      void _body;
-      return rest;
-    })
-    .sort((a, b) => (a.date < b.date ? 1 : -1));
+  const out = await Promise.all(
+    all
+      .filter((p) => !p.entry.draft)
+      .map(async ({ slug, entry }) => {
+        const { body, ...rest } = localizePost(lang, slug, entry);
+        return { ...rest, minutes: await readingMinutes(body) };
+      })
+  );
+  return out.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+/** Rough reading time: words in the post body at ~220 words per minute. */
+export async function readingMinutes(content: unknown) {
+  try {
+    const resolved = typeof content === 'function' ? await (content as () => Promise<{ node: Node }>)() : (content as { node: Node });
+    let words = 0;
+    for (const n of resolved.node.walk()) {
+      if (n.type === 'text' && typeof n.attributes.content === 'string') words += n.attributes.content.split(/\s+/).filter(Boolean).length;
+    }
+    return Math.max(1, Math.round(words / 220));
+  } catch {
+    return 1;
+  }
 }
 export type Post = Awaited<ReturnType<typeof getPosts>>[number];
 
@@ -140,4 +156,46 @@ export function formatDate(iso: string, lang: Locale) {
     month: 'short',
     day: 'numeric',
   });
+}
+
+export async function getChat(lang: Locale) {
+  const c = await reader.singletons.chat.read();
+  return (c?.messages ?? [])
+    .map((m) => ({ from: m.from as 'drone' | 'me', text: pick(lang, m.text, m.textEs) }))
+    .filter((m) => m.text);
+}
+
+export async function getSetup(lang: Locale) {
+  const s = await reader.singletons.setup.read();
+  return (s?.groups ?? [])
+    .map((g) => ({
+      title: pick(lang, g.title, g.titleEs),
+      items: g.items.map((i) => ({ name: i.name, note: pick(lang, i.note, i.noteEs), url: i.url })),
+    }))
+    .filter((g) => g.items.length);
+}
+
+/** Projects ↔ technologies ↔ posts, from content that already exists. */
+export async function getGraph(lang: Locale) {
+  const [projects, posts, cv] = await Promise.all([getProjects(lang), getPosts(lang), getCv(lang)]);
+  const catOf = new Map(cv.skills.map((k) => [k.name.toLowerCase(), k.category]));
+  const nodes: { id: string; label: string; kind: 'project' | 'tech' | 'post'; href?: string; group?: string }[] = [];
+  const links: { source: string; target: string }[] = [];
+  const tech = new Set<string>();
+  for (const p of projects) {
+    nodes.push({ id: `p:${p.slug}`, label: p.title, kind: 'project', href: `/${lang}/projects/${p.slug}` });
+    for (const t of p.stack) {
+      const id = `t:${t.toLowerCase()}`;
+      if (!tech.has(id)) { tech.add(id); nodes.push({ id, label: t, kind: 'tech', group: catOf.get(t.toLowerCase()) ?? 'other' }); }
+      links.push({ source: `p:${p.slug}`, target: id });
+    }
+  }
+  for (const post of posts) {
+    const id = `b:${post.slug}`;
+    const related = post.tags.map((t) => `t:${t.toLowerCase()}`).filter((t) => tech.has(t));
+    if (!related.length) continue;
+    nodes.push({ id, label: post.title ?? post.slug, kind: 'post', href: `/${lang}/journal/${post.slug}` });
+    related.forEach((t) => links.push({ source: id, target: t }));
+  }
+  return { nodes, links };
 }

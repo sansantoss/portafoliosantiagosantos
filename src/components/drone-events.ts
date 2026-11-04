@@ -1,5 +1,6 @@
 'use client';
 import type { AnimationAction, AnimationClip, AnimationMixer } from 'three';
+import { achieve } from './achievements';
 
 /*
   Tiny event bus so any part of the page can talk to the drone without importing three.js.
@@ -60,8 +61,10 @@ export function createClickCounter(onHit: () => void, onFlip: () => void) {
     if (taps.length >= 5) {
       taps = [];
       onFlip();
+      achieve('backflip');
     } else {
       onHit();
+      achieve('poke');
     }
   };
 }

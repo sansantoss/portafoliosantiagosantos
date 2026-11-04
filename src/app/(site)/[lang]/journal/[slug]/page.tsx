@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getPost, reader, renderBody, formatDate } from '@/lib/content';
+import { getPost, reader, renderBody, formatDate, readingMinutes } from '@/lib/content';
 import { hasLocale, locales } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 
@@ -32,16 +32,18 @@ export default async function PostPage({ params }: Params) {
   if (!p) notFound();
   const t = getDictionary(lang).journal;
   const body = await renderBody(p.body);
+  const minutes = await readingMinutes(p.body);
 
   return (
     <article className="wrap detail" lang={p.shownIn}>
       <Link href={`/${lang}/journal`} className="back" lang={lang}>← {t.back}</Link>
       <div className="label" style={{ marginBottom: 18 }} lang={lang}>
-        {formatDate(p.date, lang)} — {t.kinds[p.kind] ?? p.kind}
+        {formatDate(p.date, lang)} — {t.kinds[p.kind] ?? p.kind} · {minutes} {t.min}
       </div>
       {p.shownIn !== lang && <p className="lang-note" lang={lang}>{t.onlyIn}</p>}
       <h1>{p.title}</h1>
       {p.summary && <p className="lede">{p.summary}</p>}
+      {p.tags.length > 0 && <div className="tags" style={{ marginBottom: 32 }}>{p.tags.map((tag) => <span key={tag} className="tag">#{tag}</span>)}</div>}
       <div className="prose" style={{ borderTop: '1px solid var(--line-strong)', paddingTop: 32 }}>{body}</div>
     </article>
   );

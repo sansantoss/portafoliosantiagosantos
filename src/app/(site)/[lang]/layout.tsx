@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Script from 'next/script';
 import { notFound } from 'next/navigation';
 import localFont from 'next/font/local';
 import { GeistSans } from 'geist/font/sans';
@@ -14,7 +13,7 @@ import { Toaster } from '@/components/toast';
 import { Intro } from '@/components/intro';
 import { Interactions } from '@/components/interactions';
 import { PueblaClock } from '@/components/clock';
-import { themeScript } from '@/components/theme';
+import { Achievements, AchievementsButton } from '@/components/achievements';
 import { hasLocale, locales } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 
@@ -63,8 +62,12 @@ export default async function SiteLayout({ children, params }: Props) {
 
   return (
     <html lang={lang} className={`${serif.variable} ${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Blocking on purpose: applies the saved theme and the intro decision before the first paint. */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="/theme-init.js" />
+      </head>
       <body>
-        <Script id="theme" strategy="beforeInteractive">{themeScript}</Script>
         <Intro words={t.intro.words} skip={t.intro.skip} />
         <Interactions />
         <a href="#main" className="skip">{t.nav.skip}</a>
@@ -99,6 +102,8 @@ export default async function SiteLayout({ children, params }: Props) {
                 <Link href={`/${lang}#stack`}>{t.stack.title}</Link>
                 <Link href={`/${lang}/journal`}>{t.nav.journal}</Link>
                 <Link href={`/${lang}#cv`}>{t.nav.cv}</Link>
+                <Link href={`/${lang}/setup`}>{t.setup.title}</Link>
+                <AchievementsButton label={t.achievements.button} />
               </div>
               <div>
                 <span className="foot-label">{t.foot.contact}</span>
@@ -136,6 +141,7 @@ export default async function SiteLayout({ children, params }: Props) {
           cvFile={profile.cvFile}
         />
         <Toaster />
+        <Achievements labels={t.achievements} />
       </body>
     </html>
   );

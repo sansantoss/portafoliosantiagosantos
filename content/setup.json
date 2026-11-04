@@ -1,0 +1,70 @@
+{
+  "groups": [
+    {
+      "title": "Software",
+      "titleEs": "Software",
+      "items": [
+        {
+          "name": "Claude",
+          "note": "Thinking partner and pair programmer.",
+          "noteEs": "Para pensar y programar en pareja.",
+          "url": "https://claude.ai"
+        },
+        {
+          "name": "VS Code",
+          "note": "",
+          "noteEs": "",
+          "url": "https://code.visualstudio.com"
+        }
+      ]
+    },
+    {
+      "title": "Homelab",
+      "titleEs": "Homelab",
+      "items": [
+        {
+          "name": "Kamrui GK3 Pro",
+          "note": "Mini PC for services.",
+          "noteEs": "Mini PC para servicios.",
+          "url": ""
+        },
+        {
+          "name": "ZimaBoard",
+          "note": "",
+          "noteEs": "",
+          "url": ""
+        },
+        {
+          "name": "UGREEN NASync DH4300 Plus",
+          "note": "Storage and backups.",
+          "noteEs": "Almacenamiento y respaldos.",
+          "url": ""
+        },
+        {
+          "name": "TP-Link Deco",
+          "note": "Mesh network with WireGuard.",
+          "noteEs": "Red mesh con WireGuard.",
+          "url": ""
+        }
+      ]
+    },
+    {
+      "title": "Outside",
+      "titleEs": "Fuera",
+      "items": [
+        {
+          "name": "Trek Madone · Shimano 105 Di2",
+          "note": "Road bike.",
+          "noteEs": "Bici de ruta.",
+          "url": ""
+        },
+        {
+          "name": "Garmin Fēnix 6X Pro Solar",
+          "note": "Training.",
+          "noteEs": "Entrenamiento.",
+          "url": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "messages": [
+    {
+      "from": "drone",
+      "text": "Outside of code, what do you do?",
+      "textEs": "Fuera del código, ¿qué haces?"
+    },
+    {
+      "from": "me",
+      "text": "I ride. Road on my Trek Madone on weekends, mountain whenever I can.",
+      "textEs": "Rodar. Ruta en mi Trek Madone los fines de semana y montaña cuando se puede."
+    },
+    {
+      "from": "drone",
+      "text": "Favourite route?",
+      "textEs": "¿Ruta favorita?"
+    },
+    {
+      "from": "me",
+      "text": "Out and back to Chalchihuapan, about 40 km. Calpan is next on the list.",
+      "textEs": "Ida y vuelta a Chalchihuapan, unos 40 km. Calpan es la que sigue."
+    },
+    {
+      "from": "drone",
+      "text": "And at home?",
+      "textEs": "¿Y en casa?"
+    },
+    {
+      "from": "me",
+      "text": "A homelab: a mini PC, a ZimaBoard, a NAS and a Minecraft server my friends reach over WireGuard.",
+      "textEs": "Un homelab: mini PC, ZimaBoard, un NAS y un servidor de Minecraft al que mis amigos entran por WireGuard."
+    },
+    {
+      "from": "drone",
+      "text": "Games?",
+      "textEs": "¿Videojuegos?"
+    },
+    {
+      "from": "me",
+      "text": "League of Legends, mid or support. Fizz or Pyke when the game needs someone to make a play.",
+      "textEs": "League of Legends, de mid o support. Fizz o Pyke cuando la partida necesita a alguien que se la juegue."
+    },
+    {
+      "from": "drone",
+      "text": "How many languages?",
+      "textEs": "¿Cuántos idiomas?"
+    },
+    {
+      "from": "me",
+      "text": "Spanish, English, German (working towards B2) and some French.",
+      "textEs": "Español, inglés, alemán (preparando el B2) y algo de francés."
+    },
+    {
+      "from": "drone",
+      "text": "A book that stuck with you?",
+      "textEs": "¿Un libro que te marcó?"
+    },
+    {
+      "from": "me",
+      "text": "Deep Work. And Co-Intelligence, for obvious reasons.",
+      "textEs": "Deep Work. Y Co-Intelligence, por razones obvias."
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import { Chat, Copy, Doc, Download, External, Folder, Globe, Search, Sun, Arrow 
 import { copyText, showToast } from './toast';
 import { toggleTheme } from './theme';
 import { droneCelebrate, droneLook } from './drone-events';
+import { achieve } from './achievements';
 import { otherLocale, rememberLocale, switchLocalePath, type Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/dictionaries';
 
@@ -45,6 +46,7 @@ export function CommandPalette({ lang, t, emailCopied, projects, posts, email, g
     lastFocus.current = document.activeElement as HTMLElement;
     setQuery('');
     setOpen(true);
+    achieve('palette');
     droneLook({ x: window.innerWidth / 2, y: window.innerHeight * 0.22 });
   }, []);
   const close = useCallback(() => {
@@ -153,6 +155,7 @@ export function CommandPalette({ lang, t, emailCopied, projects, posts, email, g
             <Command.Group heading={t.actions}>
               <Command.Item keywords={['mail', 'contact']} onSelect={() => run(() => {
                 copyText(email, emailCopied);
+                achieve('contact');
                 droneCelebrate();
               })}>
                 <Copy />
@@ -179,7 +182,11 @@ export function CommandPalette({ lang, t, emailCopied, projects, posts, email, g
               )}
               <Command.Item
                 keywords={['dark', 'light', 'mode', 'theme']}
-                onSelect={() => run(() => showToast(toggleTheme() === 'dark' ? t.dark : t.light))}
+                onSelect={() => run(() => {
+                  const next = toggleTheme();
+                  showToast(next === 'dark' ? t.dark : t.light);
+                  if (next === 'dark') achieve('night');
+                })}
               >
                 <Sun />
                 <span className="grow">{t.theme}</span>
@@ -189,6 +196,7 @@ export function CommandPalette({ lang, t, emailCopied, projects, posts, email, g
                 onSelect={() => run(() => {
                   const to = otherLocale(lang);
                   rememberLocale(to);
+                  achieve('polyglot');
                   router.push(switchLocalePath(pathname, to));
                 })}
               >

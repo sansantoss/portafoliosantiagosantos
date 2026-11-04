@@ -1,0 +1,2 @@
+/* Runs before paint: saved theme + whether the greeting intro plays. Keep in sync with src/components/theme.ts */
+try{var t=localStorage.getItem('sb-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}try{if(sessionStorage.getItem('sb-intro'))document.documentElement.classList.add('intro-seen');else sessionStorage.setItem('sb-intro','1')}catch(e){document.documentElement.classList.add('intro-seen')}
